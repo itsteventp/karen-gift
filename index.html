@@ -2,215 +2,65 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Character Customizer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Test Character Loader</title>
   <style>
     body {
       display: flex;
+      background: #f0f0f0;
       margin: 0;
+      padding: 20px;
       font-family: sans-serif;
     }
     canvas {
-      background: #ccc;
-      width: 60vw;
-      height: 95vh;
-      image-rendering: pixelated;
-    }
-    .controls {
-      width: 40vw;
-      padding: 1rem;
-      overflow-y: auto;
-    }
-    .section {
-      margin-bottom: 1.5rem;
+      border: 1px solid #ccc;
+      max-height: 90vh;
+      width: auto;
     }
   </style>
 </head>
 <body>
-  <canvas id="characterCanvas" width="2160" height="3840"></canvas>
-  <div class="controls">
-    <div class="section" id="bodyControls">
-      <h2>Body Parts</h2>
-      <!-- Dynamically filled -->
-    </div>
-    <div class="section" id="clothingControls">
-      <h2>Clothing</h2>
-      <!-- Dynamically filled -->
-    </div>
-    <button onclick="downloadImage()">Download PNG</button>
-  </div>
+  <canvas id="main-canvas" width="2160" height="3840"></canvas>
 
   <script>
-    const canvas = document.getElementById('characterCanvas');
-    const ctx = canvas.getContext('2d');
-
-    const activeBodyParts = {
-      head: "01",
-      torso: "01",
-      larm: "01",
-      rarm: "01",
-      lleg: "01",
-      rleg: "01"
-    };
-
-    const clothingEnabled = {};
-    const clothingColors = {};
-
-    const images = [];
-
-    // Body Parts
-    for (const [part, max] of Object.entries({ head: 3, torso: 1, larm: 4, rarm: 4, lleg: 4, rleg: 4 })) {
-      for (let i = 1; i <= max; i++) {
-        const num = String(i).padStart(2, '0');
-        images.push({
-          src: `images/${part}_${num}.png`,
-          type: part,
-          group: "body",
-          z: 0,
-          pose: num
-        });
-      }
-    }
-
-    // Clothing Items
-    const clothingDefs = [
-      { type: "hair", poses: ["head"], variants: 2 },
-      { type: "face", poses: ["head"], variants: 6 },
-      { type: "shirt", poses: ["larm", "rarm"], variants: 3 },
-      { type: "jacket", poses: ["larm", "rarm"], variants: 2 },
-      { type: "pants", poses: ["lleg", "rleg"], variants: 3 },
-      { type: "lshoe", poses: ["lleg"], variants: 3 },
-      { type: "rshoe", poses: ["rleg"], variants: 4 },
+    const imageData = [
+      { filename: 'images/head_01.png', zIndex: 1 },
+      { filename: 'images/torso_01.png', zIndex: 2 },
+      { filename: 'images/larm_01.png', zIndex: 3 },
+      { filename: 'images/rarm_01.png', zIndex: 4 },
+      { filename: 'images/lleg_01.png', zIndex: 5 },
+      { filename: 'images/rleg_01.png', zIndex: 6 }
     ];
 
-    clothingDefs.forEach(def => {
-      for (let i = 1; i <= def.variants; i++) {
-        const varNum = String(i).padStart(2, '0');
-        const poseKey = def.poses.map(p => activeBodyParts[p]).join("_");
-        const id = `${def.type}_${varNum}_${poseKey}`;
+    const canvas = document.getElementById('main-canvas');
+    const ctx = canvas.getContext('2d');
+    const loadedImages = [];
 
-        images.push({
-          src: `images/${def.type}_${varNum}_${poseKey}.png`,
-          type: def.type,
-          group: "clothing",
-          variant: "outline",
-          poseParts: def.poses,
-          poseKey,
-          z: 1,
-          id
-        });
+    let imagesLoaded = 0;
 
-        images.push({
-          src: `images/${def.type}_${varNum}_${poseKey}_color.png`,
-          type: def.type,
-          group: "clothing",
-          variant: "color",
-          poseParts: def.poses,
-          poseKey,
-          z: 2,
-          id
-        });
-      }
+    imageData.forEach((img, index) => {
+      const image = new Image();
+      image.src = img.filename;
+
+      image.onload = () => {
+        loadedImages[index] = { image: image, zIndex: img.zIndex };
+        imagesLoaded++;
+
+        if (imagesLoaded === imageData.length) {
+          drawImages();
+        }
+      };
+
+      image.onerror = () => {
+        console.error("Image failed to load:", img.filename);
+      };
     });
 
-    function loadImage(obj) {
-      return new Promise(resolve => {
-        const img = new Image();
-        img.src = obj.src;
-        img.onload = () => resolve({ ...obj, img });
-      });
+    function drawImages() {
+      loadedImages
+        .sort((a, b) => a.zIndex - b.zIndex)
+        .forEach(({ image }) => ctx.drawImage(image, 0, 0));
     }
-
-    function getClothingPoseKey(parts) {
-      return parts.map(p => activeBodyParts[p] || "01").join("_");
-    }
-
-    function render() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const ordered = loadedImages.slice().sort((a, b) => a.z - b.z);
-
-      for (const obj of ordered) {
-        if (obj.group === "body") {
-          if (activeBodyParts[obj.type] === obj.pose) ctx.drawImage(obj.img, 0, 0);
-        } else if (obj.group === "clothing") {
-          const enabled = clothingEnabled[obj.type];
-          const currentKey = getClothingPoseKey(obj.poseParts);
-          if (enabled && obj.poseKey === currentKey) {
-            if (obj.variant === "color") {
-              const color = clothingColors[obj.type] || "#ffffff";
-              ctx.save();
-              ctx.drawImage(obj.img, 0, 0);
-              ctx.globalCompositeOperation = "source-in";
-              ctx.fillStyle = color;
-              ctx.fillRect(0, 0, canvas.width, canvas.height);
-              ctx.restore();
-            } else {
-              ctx.drawImage(obj.img, 0, 0);
-            }
-          }
-        }
-      }
-    }
-
-    function buildUI() {
-      const bodyControls = document.getElementById('bodyControls');
-      const clothingControls = document.getElementById('clothingControls');
-
-      for (const part of Object.keys(activeBodyParts)) {
-        const wrapper = document.createElement('div');
-        wrapper.textContent = part.toUpperCase() + ': ';
-        const select = document.createElement('select');
-        for (let i = 1; i <= (part === 'torso' ? 1 : (part === 'head' ? 3 : 4)); i++) {
-          const opt = document.createElement('option');
-          opt.value = String(i).padStart(2, '0');
-          opt.textContent = opt.value;
-          select.appendChild(opt);
-        }
-        select.value = activeBodyParts[part];
-        select.onchange = () => {
-          activeBodyParts[part] = select.value;
-          render();
-        };
-        wrapper.appendChild(select);
-        bodyControls.appendChild(wrapper);
-      }
-
-      for (const def of clothingDefs) {
-        const wrapper = document.createElement('div');
-        const label = document.createElement('label');
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.onchange = () => {
-          clothingEnabled[def.type] = checkbox.checked;
-          render();
-        };
-        const colorBtn = document.createElement('input');
-        colorBtn.type = 'color';
-        colorBtn.oninput = () => {
-          clothingColors[def.type] = colorBtn.value;
-          render();
-        };
-        label.textContent = def.type;
-        wrapper.appendChild(checkbox);
-        wrapper.appendChild(label);
-        wrapper.appendChild(colorBtn);
-        clothingControls.appendChild(wrapper);
-      }
-    }
-
-    function downloadImage() {
-      const link = document.createElement('a');
-      link.download = 'character.png';
-      link.href = canvas.toDataURL();
-      link.click();
-    }
-
-    let loadedImages = [];
-    Promise.all(images.map(loadImage)).then(res => {
-      loadedImages = res;
-      buildUI();
-      render();
-    });
   </script>
 </body>
 </html>
