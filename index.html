@@ -51,8 +51,10 @@
     <canvas id="characterCanvas" width="2160" height="3840"></canvas>
   </div>
   <div id="controls">
-    <h3>Body Parts</h3>
-    <div id="body-controls"></div>
+  <h3>Body Parts</h3>
+  <div id="body-controls"></div>
+  <hr />
+  <button id="downloadBtn">Download PNG</button>
   </div>
 
   <script>
@@ -62,12 +64,12 @@
     const imagesData = [
       { id: "head_01", type: "head", src: "images/head_01.png", layer: 3, group: "body" },
       { id: "head_02", type: "head", src: "images/head_02.png", layer: 3, group: "body" },
-      { id: "head_03", type: "head", src: "images/head_03.png", layer: 2, group: "body" },
+      { id: "head_03", type: "head", src: "images/head_03.png", layer: 3, group: "body" },
       { id: "torso", type: "torso", src: "images/torso.png", layer: 2, group: "body" },
       { id: "rarm_01", type: "rarm", src: "images/rarm_01.png", layer: 1, group: "body" },
-      { id: "rarm_02", type: "rarm", src: "images/rarm_02.png", layer: 1, group: "body" },
+      { id: "rarm_02", type: "rarm", src: "images/rarm_02.png", layer: 3, group: "body" },
       { id: "larm_01", type: "larm", src: "images/larm_01.png", layer: 1, group: "body" },
-      { id: "larm_02", type: "larm", src: "images/larm_02.png", layer: 1, group: "body" },
+      { id: "larm_02", type: "larm", src: "images/larm_02.png", layer: 3, group: "body" },
       { id: "rleg_01", type: "rleg", src: "images/rleg_01.png", layer: 1, group: "body" },
       { id: "rleg_02", type: "rleg", src: "images/rleg_02.png", layer: 1, group: "body" },
       { id: "lleg_01", type: "lleg", src: "images/lleg_01.png", layer: 1, group: "body" },
@@ -138,6 +140,14 @@
     };
 
     loadImages();
+
+    document.getElementById("downloadBtn").addEventListener("click", () => {
+       const link = document.createElement("a");
+       link.download = "character.png";
+       link.href = canvas.toDataURL("image/png");
+       link.click();
+    });
+    
   </script>
 </body>
 </html>
