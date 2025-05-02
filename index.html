@@ -2,182 +2,215 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Character Builder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Character Customizer</title>
   <style>
     body {
-      margin: 0;
       display: flex;
-      height: 100vh;
+      margin: 0;
       font-family: sans-serif;
     }
-
-    #main {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #eee;
-    }
-
-    #controls {
-      width: 300px;
-      padding: 20px;
-      background: #fff;
-      overflow-y: auto;
-      border-left: 1px solid #ccc;
-    }
-
-    label {
-      display: block;
-      margin: 10px 0 5px;
-      font-weight: bold;
-    }
-
-    select {
-      width: 100%;
-      padding: 5px;
-    }
-
     canvas {
-      width: 540px;  /* 2160 / 4 */
-      height: 960px; /* 3840 / 4 */
-      background: transparent;
+      background: #ccc;
+      width: 60vw;
+      height: 95vh;
+      image-rendering: pixelated;
+    }
+    .controls {
+      width: 40vw;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    .section {
+      margin-bottom: 1.5rem;
     }
   </style>
 </head>
 <body>
-  </div>
-  <div id="password-overlay" style="position: fixed; inset: 0; background: #fff; display: flex; align-items: center; justify-content: center; z-index: 9999;">
-  <div style="text-align: center;">
-    <h2>Enter Password</h2>
-    <input type="password" id="password-input" placeholder="Password" style="padding: 8px; font-size: 16px;" />
-    <br /><br />
-    <button onclick="checkPassword()" style="padding: 8px 16px; font-size: 16px;">Enter</button>
-    <p id="error-message" style="color: red; display: none;">Incorrect password.</p>
-  </div>
-  </div>
-  <div id="main">
-    <canvas id="characterCanvas" width="2160" height="3840"></canvas>
-  </div>
-  <div id="controls">
-  <h3>Body Parts</h3>
-  <div id="body-controls"></div>
-  <hr />
-  <button id="downloadBtn">Download PNG</button>
+  <canvas id="characterCanvas" width="2160" height="3840"></canvas>
+  <div class="controls">
+    <div class="section" id="bodyControls">
+      <h2>Body Parts</h2>
+      <!-- Dynamically filled -->
+    </div>
+    <div class="section" id="clothingControls">
+      <h2>Clothing</h2>
+      <!-- Dynamically filled -->
+    </div>
+    <button onclick="downloadImage()">Download PNG</button>
   </div>
 
   <script>
-    const canvas = document.getElementById("characterCanvas");
-    const ctx = canvas.getContext("2d");
+    const canvas = document.getElementById('characterCanvas');
+    const ctx = canvas.getContext('2d');
 
-    const imagesData = [
-      { id: "head_01", type: "head", src: "images/head_01.png", layer: 4, group: "body" },
-      { id: "head_02", type: "head", src: "images/head_02.png", layer: 4, group: "body" },
-      { id: "head_03", type: "head", src: "images/head_03.png", layer: 4, group: "body" },
-      { id: "torso", type: "torso", src: "images/torso.png", layer: 3, group: "body" },
-      { id: "rarm_01", type: "rarm", src: "images/rarm_01.png", layer: 2, group: "body" },
-      { id: "rarm_02", type: "rarm", src: "images/rarm_02.png", layer: 4, group: "body" },
-      { id: "larm_01", type: "larm", src: "images/larm_01.png", layer: 2, group: "body" },
-      { id: "larm_02", type: "larm", src: "images/larm_02.png", layer: 4, group: "body" },
-      { id: "rleg_01", type: "rleg", src: "images/rleg_01.png", layer: 1, group: "body" },
-      { id: "rleg_02", type: "rleg", src: "images/rleg_02.png", layer: 1, group: "body" },
-      { id: "lleg_01", type: "lleg", src: "images/lleg_01.png", layer: 1, group: "body" },
-      { id: "lleg_02", type: "lleg", src: "images/lleg_02.png", layer: 1, group: "body" },
-      { id: "rarm_03", type: "rarm", src: "images/rarm_03.png", layer: 1, group: "body" },
-      { id: "rarm_04", type: "rarm", src: "images/rarm_04.png", layer: 1, group: "body" },
-      { id: "larm_03", type: "larm", src: "images/larm_03.png", layer: 1, group: "body" },
-      { id: "larm_04", type: "larm", src: "images/larm_04.png", layer: 1, group: "body" },
-      { id: "rleg_03", type: "rleg", src: "images/rleg_03.png", layer: 1, group: "body" },
-      { id: "rleg_04", type: "rleg", src: "images/rleg_04.png", layer: 1, group: "body" },
-      { id: "lleg_03", type: "lleg", src: "images/lleg_03.png", layer: 1, group: "body" },
-      { id: "lleg_04", type: "lleg", src: "images/lleg_04.png", layer: 1, group: "body" }
+    const activeBodyParts = {
+      head: "01",
+      torso: "01",
+      larm: "01",
+      rarm: "01",
+      lleg: "01",
+      rleg: "01"
+    };
+
+    const clothingEnabled = {};
+    const clothingColors = {};
+
+    const images = [];
+
+    // Body Parts
+    for (const [part, max] of Object.entries({ head: 3, torso: 1, larm: 4, rarm: 4, lleg: 4, rleg: 4 })) {
+      for (let i = 1; i <= max; i++) {
+        const num = String(i).padStart(2, '0');
+        images.push({
+          src: `images/${part}_${num}.png`,
+          type: part,
+          group: "body",
+          z: 0,
+          pose: num
+        });
+      }
+    }
+
+    // Clothing Items
+    const clothingDefs = [
+      { type: "hair", poses: ["head"], variants: 2 },
+      { type: "face", poses: ["head"], variants: 6 },
+      { type: "shirt", poses: ["larm", "rarm"], variants: 3 },
+      { type: "jacket", poses: ["larm", "rarm"], variants: 2 },
+      { type: "pants", poses: ["lleg", "rleg"], variants: 3 },
+      { type: "lshoe", poses: ["lleg"], variants: 3 },
+      { type: "rshoe", poses: ["rleg"], variants: 4 },
     ];
 
-    const imageElements = {};
-    const currentSelection = {};
+    clothingDefs.forEach(def => {
+      for (let i = 1; i <= def.variants; i++) {
+        const varNum = String(i).padStart(2, '0');
+        const poseKey = def.poses.map(p => activeBodyParts[p]).join("_");
+        const id = `${def.type}_${varNum}_${poseKey}`;
 
-    // Load all images
-    const loadImages = async () => {
-      const promises = imagesData.map(data => {
-        return new Promise(resolve => {
-          const img = new Image();
-          img.src = data.src;
-          img.onload = () => {
-            imageElements[data.id] = { img, ...data };
-            resolve();
-          };
-        });
-      });
-      await Promise.all(promises);
-      initializeControls();
-      renderCanvas();
-    };
-
-    const initializeControls = () => {
-      const bodyControls = document.getElementById("body-controls");
-      const bodyTypes = [...new Set(imagesData.filter(i => i.group === "body").map(i => i.type))];
-
-      bodyTypes.forEach(type => {
-        const label = document.createElement("label");
-        label.textContent = type;
-
-        const select = document.createElement("select");
-        const options = imagesData.filter(i => i.type === type);
-
-        options.forEach(opt => {
-          const option = document.createElement("option");
-          option.value = opt.id;
-          option.textContent = opt.id;
-          select.appendChild(option);
+        images.push({
+          src: `images/${def.type}_${varNum}_${poseKey}.png`,
+          type: def.type,
+          group: "clothing",
+          variant: "outline",
+          poseParts: def.poses,
+          poseKey,
+          z: 1,
+          id
         });
 
-        select.addEventListener("change", () => {
-          currentSelection[type] = select.value;
-          renderCanvas();
+        images.push({
+          src: `images/${def.type}_${varNum}_${poseKey}_color.png`,
+          type: def.type,
+          group: "clothing",
+          variant: "color",
+          poseParts: def.poses,
+          poseKey,
+          z: 2,
+          id
         });
-
-        // Set default selection
-        currentSelection[type] = options[0].id;
-
-        label.appendChild(select);
-        bodyControls.appendChild(label);
-      });
-    };
-
-    const renderCanvas = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const selectedImages = Object.values(currentSelection).map(id => imageElements[id]);
-
-      selectedImages
-        .sort((a, b) => a.layer - b.layer)
-        .forEach(({ img }) => {
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        });
-    };
-
-    loadImages();
-
-    document.getElementById("downloadBtn").addEventListener("click", () => {
-       const link = document.createElement("a");
-       link.download = "character.png";
-       link.href = canvas.toDataURL("image/png");
-       link.click();
+      }
     });
 
-    function checkPassword() {
-       const correctPassword = "aeknr"; // CHANGE THIS to your preferred password
-       const input = document.getElementById("password-input").value;
-       const error = document.getElementById("error-message");
-
-       if (input === correctPassword) {
-          document.getElementById("password-overlay").style.display = "none";
-       } else {
-          error.style.display = "block";
-       }
+    function loadImage(obj) {
+      return new Promise(resolve => {
+        const img = new Image();
+        img.src = obj.src;
+        img.onload = () => resolve({ ...obj, img });
+      });
     }
-    
+
+    function getClothingPoseKey(parts) {
+      return parts.map(p => activeBodyParts[p] || "01").join("_");
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const ordered = loadedImages.slice().sort((a, b) => a.z - b.z);
+
+      for (const obj of ordered) {
+        if (obj.group === "body") {
+          if (activeBodyParts[obj.type] === obj.pose) ctx.drawImage(obj.img, 0, 0);
+        } else if (obj.group === "clothing") {
+          const enabled = clothingEnabled[obj.type];
+          const currentKey = getClothingPoseKey(obj.poseParts);
+          if (enabled && obj.poseKey === currentKey) {
+            if (obj.variant === "color") {
+              const color = clothingColors[obj.type] || "#ffffff";
+              ctx.save();
+              ctx.drawImage(obj.img, 0, 0);
+              ctx.globalCompositeOperation = "source-in";
+              ctx.fillStyle = color;
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              ctx.restore();
+            } else {
+              ctx.drawImage(obj.img, 0, 0);
+            }
+          }
+        }
+      }
+    }
+
+    function buildUI() {
+      const bodyControls = document.getElementById('bodyControls');
+      const clothingControls = document.getElementById('clothingControls');
+
+      for (const part of Object.keys(activeBodyParts)) {
+        const wrapper = document.createElement('div');
+        wrapper.textContent = part.toUpperCase() + ': ';
+        const select = document.createElement('select');
+        for (let i = 1; i <= (part === 'torso' ? 1 : (part === 'head' ? 3 : 4)); i++) {
+          const opt = document.createElement('option');
+          opt.value = String(i).padStart(2, '0');
+          opt.textContent = opt.value;
+          select.appendChild(opt);
+        }
+        select.value = activeBodyParts[part];
+        select.onchange = () => {
+          activeBodyParts[part] = select.value;
+          render();
+        };
+        wrapper.appendChild(select);
+        bodyControls.appendChild(wrapper);
+      }
+
+      for (const def of clothingDefs) {
+        const wrapper = document.createElement('div');
+        const label = document.createElement('label');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.onchange = () => {
+          clothingEnabled[def.type] = checkbox.checked;
+          render();
+        };
+        const colorBtn = document.createElement('input');
+        colorBtn.type = 'color';
+        colorBtn.oninput = () => {
+          clothingColors[def.type] = colorBtn.value;
+          render();
+        };
+        label.textContent = def.type;
+        wrapper.appendChild(checkbox);
+        wrapper.appendChild(label);
+        wrapper.appendChild(colorBtn);
+        clothingControls.appendChild(wrapper);
+      }
+    }
+
+    function downloadImage() {
+      const link = document.createElement('a');
+      link.download = 'character.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    }
+
+    let loadedImages = [];
+    Promise.all(images.map(loadImage)).then(res => {
+      loadedImages = res;
+      buildUI();
+      render();
+    });
   </script>
 </body>
 </html>
