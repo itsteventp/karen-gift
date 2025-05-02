@@ -1,183 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Character Customization</title>
+  <meta charset="UTF-8">
+  <title>Character Builder</title>
   <style>
     body {
       display: flex;
-      background: #f0f0f0;
       margin: 0;
-      padding: 20px;
       font-family: sans-serif;
     }
-    canvas {
-      border: 1px solid #ccc;
-      max-height: 90vh;
-      width: auto;
+    #canvasContainer {
+      flex: 1;
+      background: #eee;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-    #options {
-      margin-left: 20px;
+    #controls {
+      width: 300px;
+      padding: 20px;
+      background: #f9f9f9;
+      border-left: 1px solid #ccc;
+    }
+    canvas {
+      background: white;
+      width: 540px;
+      height: 960px;
+    }
+    select {
+      width: 100%;
+      margin-bottom: 15px;
     }
   </style>
 </head>
 <body>
-  <canvas id="main-canvas" width="2160" height="3840"></canvas>
-  <div id="options">
+  <div id="canvasContainer">
+    <canvas id="characterCanvas" width="2160" height="3840"></canvas>
+  </div>
+  <div id="controls">
     <h3>Body Parts</h3>
-    <label for="head">Head:</label>
-    <select id="head">
-      <option value="head_01.png">Head 1</option>
-      <option value="head_02.png">Head 2</option>
-      <option value="head_03.png">Head 3</option>
-    </select>
-    <br>
-    <label for="torso">Torso:</label>
-    <select id="torso">
-      <option value="torso_01.png">Torso 1</option>
-    </select>
-    <br>
-    <label for="larm">Left Arm:</label>
-    <select id="larm">
-      <option value="larm_01.png">Left Arm 1</option>
-      <option value="larm_02.png">Left Arm 2</option>
-      <option value="larm_03.png">Left Arm 3</option>
-      <option value="larm_04.png">Left Arm 4</option>
-    </select>
-    <br>
-    <label for="rarm">Right Arm:</label>
-    <select id="rarm">
-      <option value="rarm_01.png">Right Arm 1</option>
-      <option value="rarm_02.png">Right Arm 2</option>
-      <option value="rarm_03.png">Right Arm 3</option>
-      <option value="rarm_04.png">Right Arm 4</option>
-    </select>
-    <br>
-    <label for="lleg">Left Leg:</label>
-    <select id="lleg">
-      <option value="lleg_01.png">Left Leg 1</option>
-      <option value="lleg_02.png">Left Leg 2</option>
-      <option value="lleg_03.png">Left Leg 3</option>
-      <option value="lleg_04.png">Left Leg 4</option>
-    </select>
-    <br>
-    <label for="rleg">Right Leg:</label>
-    <select id="rleg">
-      <option value="rleg_01.png">Right Leg 1</option>
-      <option value="rleg_02.png">Right Leg 2</option>
-      <option value="rleg_03.png">Right Leg 3</option>
-      <option value="rleg_04.png">Right Leg 4</option>
-    </select>
-    <br>
-    <h3>Clothing (Coming Soon)</h3>
-    <!-- Clothing options will go here -->
+    <label>Head:
+      <select id="headSelect">
+        <option value="01">01</option>
+        <option value="02">02</option>
+        <option value="03">03</option>
+      </select>
+    </label><br>
+    <label>Torso:
+      <select id="torsoSelect">
+        <option value="01">01</option>
+      </select>
+    </label><br>
+    <label>Left Arm:
+      <select id="larmSelect">
+        <option value="01">01</option>
+        <option value="02">02</option>
+        <option value="03">03</option>
+        <option value="04">04</option>
+      </select>
+    </label><br>
+    <label>Right Arm:
+      <select id="rarmSelect">
+        <option value="01">01</option>
+        <option value="02">02</option>
+        <option value="03">03</option>
+        <option value="04">04</option>
+      </select>
+    </label><br>
+    <label>Left Leg:
+      <select id="llegSelect">
+        <option value="01">01</option>
+        <option value="02">02</option>
+        <option value="03">03</option>
+        <option value="04">04</option>
+      </select>
+    </label><br>
+    <label>Right Leg:
+      <select id="rlegSelect">
+        <option value="01">01</option>
+        <option value="02">02</option>
+        <option value="03">03</option>
+        <option value="04">04</option>
+      </select>
+    </label>
   </div>
 
   <script>
-    // Image data for body parts
-    const imageData = [
-      { filename: 'images/head_01.png', zIndex: 1 },
-      { filename: 'images/head_02.png', zIndex: 1 },
-      { filename: 'images/head_03.png', zIndex: 1 },
-      { filename: 'images/torso_01.png', zIndex: 2 },
-      { filename: 'images/larm_01.png', zIndex: 3 },
-      { filename: 'images/larm_02.png', zIndex: 3 },
-      { filename: 'images/larm_03.png', zIndex: 3 },
-      { filename: 'images/larm_04.png', zIndex: 3 },
-      { filename: 'images/rarm_01.png', zIndex: 4 },
-      { filename: 'images/rarm_02.png', zIndex: 4 },
-      { filename: 'images/rarm_03.png', zIndex: 4 },
-      { filename: 'images/rarm_04.png', zIndex: 4 },
-      { filename: 'images/lleg_01.png', zIndex: 5 },
-      { filename: 'images/lleg_02.png', zIndex: 5 },
-      { filename: 'images/lleg_03.png', zIndex: 5 },
-      { filename: 'images/lleg_04.png', zIndex: 5 },
-      { filename: 'images/rleg_01.png', zIndex: 6 },
-      { filename: 'images/rleg_02.png', zIndex: 6 },
-      { filename: 'images/rleg_03.png', zIndex: 6 },
-      { filename: 'images/rleg_04.png', zIndex: 6 }
+    const canvas = document.getElementById('characterCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const bodyParts = [
+      { id: 'head', zIndex: 5 },
+      { id: 'torso', zIndex: 4 },
+      { id: 'larm', zIndex: 3 },
+      { id: 'rarm', zIndex: 3 },
+      { id: 'lleg', zIndex: 2 },
+      { id: 'rleg', zIndex: 2 },
     ];
 
-    const canvas = document.getElementById('main-canvas');
-    const ctx = canvas.getContext('2d');
-    const loadedImages = [];
+    const selections = {
+      head: '01',
+      torso: '01',
+      larm: '01',
+      rarm: '01',
+      lleg: '01',
+      rleg: '01',
+    };
 
-    let imagesLoaded = 0;
+    function loadImagesAndDraw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Log the image paths to ensure correctness
-    imageData.forEach((img, index) => {
-      console.log('Image path:', img.filename); // Log the image path to verify it's correct
-      const image = new Image();
-      image.src = img.filename;
+      const sortedParts = [...bodyParts].sort((a, b) => a.zIndex - b.zIndex);
+      let loadedCount = 0;
 
-      image.onload = () => {
-        console.log('Loaded:', img.filename);  // Log when image loads successfully
-        loadedImages[index] = { image: image, zIndex: img.zIndex };
-        imagesLoaded++;
-
-        if (imagesLoaded === imageData.length) {
-          drawImages();
-        }
-      };
-
-      image.onerror = () => {
-        console.error("Image failed to load:", img.filename);  // Log if image fails to load
-      };
-    });
-
-    function drawImages() {
-      console.log('Drawing images...');  // Confirm images are ready to be drawn
-      loadedImages
-        .sort((a, b) => a.zIndex - b.zIndex)
-        .forEach(({ image }) => ctx.drawImage(image, 0, 0));
-    }
-
-    // Event listeners for changing body parts
-    document.getElementById('head').addEventListener('change', updateBodyPart);
-    document.getElementById('torso').addEventListener('change', updateBodyPart);
-    document.getElementById('larm').addEventListener('change', updateBodyPart);
-    document.getElementById('rarm').addEventListener('change', updateBodyPart);
-    document.getElementById('lleg').addEventListener('change', updateBodyPart);
-    document.getElementById('rleg').addEventListener('change', updateBodyPart);
-
-    function updateBodyPart() {
-      const head = document.getElementById('head').value;
-      const torso = document.getElementById('torso').value;
-      const larm = document.getElementById('larm').value;
-      const rarm = document.getElementById('rarm').value;
-      const lleg = document.getElementById('lleg').value;
-      const rleg = document.getElementById('rleg').value;
-
-      // Filter and load the selected images for each body part
-      const selectedImages = [
-        `images/${head}`,
-        `images/${torso}`,
-        `images/${larm}`,
-        `images/${rarm}`,
-        `images/${lleg}`,
-        `images/${rleg}`
-      ];
-
-      imagesLoaded = 0;  // Reset image loading
-      loadedImages.length = 0;  // Clear loaded images array
-
-      selectedImages.forEach((filename, index) => {
-        const image = new Image();
-        image.src = filename;
-        image.onload = () => {
-          loadedImages[index] = { image: image, zIndex: index };
-          imagesLoaded++;
-          if (imagesLoaded === selectedImages.length) {
-            drawImages();
-          }
+      sortedParts.forEach(part => {
+        const img = new Image();
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0);
+          loadedCount++;
         };
-
-        image.onerror = () => {
-          console.error("Failed to load image:", filename);
-        };
+        img.src = `images/${part.id}_${selections[part.id]}.png`;
       });
     }
+
+    function setupListeners() {
+      bodyParts.forEach(part => {
+        const select = document.getElementById(`${part.id}Select`);
+        select.addEventListener('change', () => {
+          selections[part.id] = select.value;
+          loadImagesAndDraw();
+        });
+      });
+    }
+
+    setupListeners();
+    loadImagesAndDraw();
   </script>
 </body>
 </html>
