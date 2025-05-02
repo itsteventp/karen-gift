@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Karen's Character Customization</title>
+    <title>Karen's Gift</title>
     <style>
         body {
             display: flex;
@@ -46,11 +46,12 @@
             background-color: #45a049;
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
 <body>
     <!-- Canvas Section -->
     <div id="canvas-container">
-        <canvas id="characterCanvas" width="1080" height="1920"></canvas>
+        <canvas id="characterCanvas" width="2160" height="3840"></canvas>
     </div>
 
     <!-- Control Panel -->
@@ -60,13 +61,30 @@
             <h2>Body Parts</h2>
             <div class="control-group">
                 <label for="head-select">Head:</label>
-                <select id="head-select">
-                    <option value="head_01">Variation 1</option>
-                    <option value="head_02">Variation 2</option>
-                    <option value="head_03">Variation 3</option>
+                <select id="head-select"></select>
+            </div>
+            <div class="control-group">
+                <label for="larm-select">Left Arm:</label>
+                <select id="larm-select"></select>
+            </div>
+            <div class="control-group">
+                <label for="rarm-select">Right Arm:</label>
+                <select id="rarm-select"></select>
+            </div>
+            <div class="control-group">
+                <label for="lleg-select">Left Leg:</label>
+                <select id="lleg-select"></select>
+            </div>
+            <div class="control-group">
+                <label for="rleg-select">Right Leg:</label>
+                <select id="rleg-select"></select>
+            </div>
+            <div class="control-group">
+                <label for="torso-select">Torso:</label>
+                <select id="torso-select">
+                    <option value="torso_01">Position 1</option>
                 </select>
             </div>
-            <!-- Repeat for other body parts -->
         </section>
 
         <!-- Clothing Section -->
@@ -74,14 +92,36 @@
             <h2>Clothing</h2>
             <div class="control-group">
                 <label for="shirt-select">Shirts:</label>
-                <select id="shirt-select">
-                    <option value="shirt_01">Variation 1</option>
-                    <option value="shirt_02">Variation 2</option>
-                    <option value="shirt_03">Variation 3</option>
-                </select>
+                <select id="shirt-select"></select>
                 <input type="color" id="shirt-color" title="Change Shirt Color">
             </div>
-            <!-- Repeat for other clothing items -->
+            <div class="control-group">
+                <label for="jacket-select">Jacket:</label>
+                <select id="jacket-select"></select>
+                <input type="color" id="jacket-color" title="Change Jacket Color">
+            </div>
+            <div class="control-group">
+                <label for="pants-select">Pants:</label>
+                <select id="pants-select"></select>
+                <input type="color" id="pants-color" title="Change Pants Color">
+            </div>
+            <div class="control-group">
+                <label for="hair-select">Hair:</label>
+                <select id="hair-select"></select>
+                <input type="color" id="hair-color" title="Change Hair Color">
+            </div>
+            <div class="control-group">
+                <label for="face-select">Face:</label>
+                <select id="face-select"></select>
+            </div>
+            <div class="control-group">
+                <label for="lshoe-select">Left Shoe:</label>
+                <select id="lshoe-select"></select>
+            </div>
+            <div class="control-group">
+                <label for="rshoe-select">Right Shoe:</label>
+                <select id="rshoe-select"></select>
+            </div>
         </section>
     </div>
 
@@ -91,69 +131,120 @@
     <script>
         const canvas = document.getElementById('characterCanvas');
         const ctx = canvas.getContext('2d');
-        const imageData = {}; // Placeholder for image data loaded from CSV
+        
+        document.getElementById('download-btn').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'custom_character.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
 
-        // Load images based on selections
-        function loadImage(filename, variation, callback) {
+        // You would replace this static array with the actual parsed data of your CSV
+        const csvData = [
+            { filename: 'head_01', Class: 'bodypart', Type: 'head', Variation: '01', Dependencies: '', Color: 'FALSE', Layer: '1' },
+            { filename: 'head_02', Class: 'bodypart', Type: 'head', Variation: '02', Dependencies: '', Color: 'FALSE', Layer: '1' },
+            { filename: 'head_03', Class: 'bodypart', Type: 'head', Variation: '01', Dependencies: '', Color: 'FALSE', Layer: '1' },
+            // More entries go here...
+        ];
+
+        function init() {
+            populateDropdowns(csvData);
+            updateCanvas();
+            setupEventListeners();
+        }
+
+        function setupEventListeners() {
+            document.getElementById('head-select').addEventListener('change', updateCanvas);
+            document.getElementById('larm-select').addEventListener('change', updateCanvas);
+            document.getElementById('rarm-select').addEventListener('change', updateCanvas);
+            document.getElementById('lleg-select').addEventListener('change', updateCanvas);
+            document.getElementById('rleg-select').addEventListener('change', updateCanvas);
+            document.getElementById('shirt-select').addEventListener('change', updateCanvas);
+            document.getElementById('shirt-color').addEventListener('input', updateCanvas);
+            document.getElementById('jacket-select').addEventListener('change', updateCanvas);
+            document.getElementById('jacket-color').addEventListener('input', updateCanvas);
+            document.getElementById('pants-select').addEventListener('change', updateCanvas);
+            document.getElementById('pants-color').addEventListener('input', updateCanvas);
+            document.getElementById('face-select').addEventListener('change', updateCanvas);
+            document.getElementById('hair-select').addEventListener('change', updateCanvas);
+            document.getElementById('lshoe-select').addEventListener('change', updateCanvas);
+            document.getElementById('rshoe-select').addEventListener('change', updateCanvas);
+        }
+
+        function loadImage(filename, callback) {
             const img = new Image();
-            img.src = `images/${filename}_${variation}.png`;
+            img.src = `images/${filename}.png`;
             img.onload = () => callback(img);
         }
 
-        function applyTint(img, color) {
-            const tempCanvas = document.createElement('canvas');
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCanvas.width = img.width;
-            tempCanvas.height = img.height;
-            tempCtx.drawImage(img, 0, 0);
-
-            let imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-            let data = imgData.data;
-
-            // Simplified tint logic
+        function applyTint(baseImg, outlineImg, color) {
             const rTint = parseInt(color.slice(1, 3), 16);
             const gTint = parseInt(color.slice(3, 5), 16);
             const bTint = parseInt(color.slice(5, 7), 16);
 
-            for (let i = 0; i < data.length; i += 4) {
-                data[i] = rTint;    // Red channel
-                data[i + 1] = gTint; // Green channel
-                data[i + 2] = bTint; // Blue channel
-            }
-
-            tempCtx.putImageData(imgData, 0, 0);
-            ctx.drawImage(tempCanvas, 0, 0);
+            ctx.drawImage(basePath, 0, 0);
+            ctx.globalCompositeOperation = 'source-in';
+            ctx.fillStyle = `rgba(${rTint},${gTint},${bTint},1)`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.globalCompositeOperation = 'destination-atop';
+            ctx.drawImage(img, 0, 0);
+            ctx.globalCompositeOperation = 'source-over';
         }
 
         function updateCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             const headVariation = document.getElementById('head-select').value;
+            const larmVariation = document.getElementById('larm-select').value;
+            const rarmVariation = document.getElementById('rarm-select').value;
+            const llegVariation = document.getElementById('lleg-select').value;
+            const rlegVariation = document.getElementById('rleg-select').value;
+
             const shirtVariation = document.getElementById('shirt-select').value;
             const shirtColor = document.getElementById('shirt-color').value;
+            const jacketVariation = document.getElementById('jacket-select').value;
+            const jacketColor = document.getElementById('jacket-color').value;
+            const pantsVariation = document.getElementById('pants-select').value;
+            const pantsColor = document.getElementById('pants-color').value;
+            const hairVariation = document.getElementById('hair-select').value;
+            const faceVariation = document.getElementById('face-select').value;
+            const lshoeVariation = document.getElementById('lshoe-select').value;
+            const rshoeVariation = document.getElementById('rshoe-select').value;
 
-            loadImage('head', headVariation, (img) => {
-                ctx.drawImage(img, 0, 0);
-                loadImage('shirt', shirtVariation, (img) => {
-                    applyTint(img, shirtColor);
+            const layers = [];
+
+            csvData.forEach(item => {
+                if ((item.Type === 'head' && item.Variation === headVariation)
+                    || (item.Type === 'larm' && item.Variation === llegVariation)
+                    || (item.Type === 'rarm' && item.Variation === rlegVariation)
+                    || item.Type === 'torso'
+                    || (item.Type === 'shirt' && item.Variation === shirtVariation && item.Dependencies.includes('larm_' + llegVariation) && item.Dependencies.includes(`rarm_${rlegVariation}`))
+                    || item.Type === 'jacket'
+                    || (item.Type === 'pants' && item.Dependencies.includes(`lleg_${llegVariation}`) && item.Dependencies.includes(`rleg_${rshoeVariation}`))
+                    || item.Type === 'lshoe'
+                    || item.Type === 'rshoe'
+                    || item.Type === 'face'
+                    || (item.Type === 'hair' && item.Variation === hairVariation)
+                ) {
+                    layers.push(item);
+                }
+            });
+
+            layers.sort((a, b) => a.Layer - b.Layer);
+
+            layers.forEach(item => {
+                loadImage(item.filename, (img) => {
+                    if (item.Color === 'TRUE') {
+                        const color = document.getElementById(`${item.Type}-color`).value;
+                        applyTint(img, color);
+                    } else {
+                        ctx.drawImage(img, 0, 0);
+                    }
                 });
             });
         }
 
-        document.getElementById('head-select').addEventListener('change', updateCanvas);
-        document.getElementById('shirt-select').addEventListener('change', updateCanvas);
-        document.getElementById('shirt-color').addEventListener('input', updateCanvas);
-
-        document.getElementById('download-btn').addEventListener('click', () => {
-            const dataURL = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.href = dataURL;
-            link.download = 'custom_character.png';
-            link.click();
-        });
-
-        // Initial setup and CSV load should be placed here
-        updateCanvas();
+        init(); // Call init to start
     </script>
 </body>
 </html>
