@@ -47,6 +47,16 @@
   </style>
 </head>
 <body>
+  </div>
+  <div id="password-overlay" style="position: fixed; inset: 0; background: #fff; display: flex; align-items: center; justify-content: center; z-index: 9999;">
+  <div style="text-align: center;">
+    <h2>Enter Password</h2>
+    <input type="password" id="password-input" placeholder="Password" style="padding: 8px; font-size: 16px;" />
+    <br /><br />
+    <button onclick="checkPassword()" style="padding: 8px 16px; font-size: 16px;">Enter</button>
+    <p id="error-message" style="color: red; display: none;">Incorrect password.</p>
+  </div>
+  </div>
   <div id="main">
     <canvas id="characterCanvas" width="2160" height="3840"></canvas>
   </div>
@@ -147,6 +157,18 @@
        link.href = canvas.toDataURL("image/png");
        link.click();
     });
+
+    function checkPassword() {
+       const correctPassword = "aeknr"; // CHANGE THIS to your preferred password
+       const input = document.getElementById("password-input").value;
+       const error = document.getElementById("error-message");
+
+       if (input === correctPassword) {
+          document.getElementById("password-overlay").style.display = "none";
+       } else {
+          error.style.display = "block";
+       }
+    }
     
   </script>
 </body>
