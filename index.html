@@ -2,199 +2,174 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Character Customizer</title>
   <style>
     body {
       display: flex;
-      font-family: sans-serif;
       margin: 0;
-      padding: 0;
-    }
-    #main {
-      flex: 6;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #f0f0f0;
+      font-family: sans-serif;
       height: 100vh;
     }
-    #panel {
-      flex: 3;
-      padding: 20px;
+    #canvas-area {
+      width: 76%;
+      background: #eee;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      aspect-ratio: 6 / 19;
+      position: relative;
+      overflow: hidden;
+    }
+    #canvas-area img {
+      position: absolute;
+      max-width: 100%;
+      max-height: 100%;
+    }
+    #controls {
+      width: 24%;
       overflow-y: auto;
-      background: #ffffff;
+      padding: 10px;
+      box-sizing: border-box;
+      background: #fafafa;
       border-left: 1px solid #ccc;
     }
-    canvas {
-      border: 1px solid #000;
-      width: 60%;
-      aspect-ratio: 6 / 19;
+    label {
+      display: block;
+      margin: 6px 0;
     }
-    .section {
-      margin-bottom: 20px;
-    }
-    .section h3 {
-      margin-bottom: 5px;
+    .color-button {
+      margin-left: 10px;
     }
   </style>
 </head>
 <body>
-  <div id="main">
-    <canvas id="canvas" width="600" height="1900"></canvas>
+  <div id="canvas-area" id="canvas">
+    <!-- Images inserted dynamically -->
   </div>
-  <div id="panel">
-    <div id="options"></div>
-    <button onclick="downloadImage()">Download Image</button>
+  <div id="controls">
+    <h2>Customize</h2>
+    <div id="control-panel"></div>
+    <button onclick="downloadImage()">Download PNG</button>
   </div>
 
   <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-
-    const layers = [
-      {
-        type: 'top',
-        id: 'circle',
-        srcOutline: 'images/BO.png',
-        srcColor: 'images/BC.png',
-        zIndex: 2,
-        optional: false,
-        color: '#f4a261'
-      },
-      {
-        type: 'top',
-        id: 'square',
-        srcOutline: 'images/YO.png',
-        srcColor: 'images/YC.png',
-        zIndex: 3,
-        optional: false,
-        color: '#f4a261'
-      },
-      {
-        type: 'bottom',
-        id: 'circle',
-        srcOutline: 'images/RO.png',
-        srcColor: 'images/RY.png',
-        zIndex: 1,
-        optional: true,
-        color: '#2a9d8f'
-      }
+    // Example image metadata
+    const imageData = [
+      { src: "images/YC.png", type: "top", id: "square", layer: 3, required: false },
+      { src: "images/BC.png", type: "top", id: "circle", layer: 2, required: false },
+      { src: "images/RC.png", type: "bottom", id: "circle", layer: 1, required: true },
     ];
 
-    const activeLayers = {};
-    const images = {}; // preload cache
+    const canvasArea = document.getElementById('canvas-area');
+    const controlPanel = document.getElementById('control-panel');
+    const typeMap = {};
 
-    function preloadImages(callback) {
-      let loaded = 0;
-      const total = layers.length * 2;
-      layers.forEach(layer => {
-        [layer.srcOutline, layer.srcColor].forEach(src => {
-          const img = new Image();
-          img.onload = () => {
-            images[src] = img;
-            loaded++;
-            if (loaded === total) callback();
-          };
-          img.src = src;
-        });
-      });
-    }
+    // Create image elements and UI
+    imageData.forEach(data => {
+      const img = document.createElement('img');
+      img.src = data.src;
+      img.dataset.type = data.type;
+      img.dataset.id = data.id;
+      img.dataset.layer = data.layer;
+      img.dataset.required = data.required;
+      img.style.zIndex = data.layer;
+      if (!data.required) img.style.display = "none";
 
-    function renderCanvas() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const active = layers.filter(l => activeLayers[l.type] === l.id || (l.optional && activeLayers[l.id]));
-      active.sort((a, b) => a.zIndex - b.zIndex);
+      canvasArea.appendChild(img);
 
-      active.forEach(layer => {
-        const colorImg = images[layer.srcColor];
-        const outlineImg = images[layer.srcOutline];
-
-        const temp = document.createElement('canvas');
-        temp.width = canvas.width;
-        temp.height = canvas.height;
-        const tctx = temp.getContext('2d');
-
-        tctx.drawImage(colorImg, 0, 0);
-        tctx.globalCompositeOperation = 'source-in';
-        tctx.fillStyle = layer.color;
-        tctx.fillRect(0, 0, temp.width, temp.height);
-
-        ctx.drawImage(temp, 0, 0);
-        ctx.drawImage(outlineImg, 0, 0);
-      });
-    }
-
-    function setupUI() {
-      const container = document.getElementById('options');
-      const types = [...new Set(layers.map(l => l.type))];
-
-      types.forEach(type => {
-        const section = document.createElement('div');
-        section.className = 'section';
-        section.innerHTML = `<h3>${type}</h3>`;
-
-        const group = layers.filter(l => l.type === type);
-        group.forEach(layer => {
-          const id = `${type}_${layer.id}`;
-
-          const label = document.createElement('label');
-          label.innerHTML = `
-            <input type="radio" name="${type}" value="${layer.id}" ${!layer.optional ? 'checked' : ''}>
-            ${layer.id}
-            <button onclick="changeColor('${layer.id}')">🎨</button>
-          `;
-          section.appendChild(label);
-          section.appendChild(document.createElement('br'));
-
-          if (!layer.optional) activeLayers[type] = layer.id;
-        });
-        container.appendChild(section);
-      });
-
-      layers.filter(l => l.optional).forEach(layer => {
-        const section = document.createElement('div');
-        section.className = 'section';
-        section.innerHTML = `<h3>${layer.id}</h3>`;
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.onchange = () => {
-          activeLayers[layer.id] = checkbox.checked;
-          renderCanvas();
-        };
-        section.appendChild(checkbox);
-        section.innerHTML += ` <button onclick="changeColor('${layer.id}')">🎨</button>`;
-        container.appendChild(section);
-      });
-
-      container.addEventListener('change', (e) => {
-        const { name, value } = e.target;
-        activeLayers[name] = value;
-        renderCanvas();
-      });
-    }
-
-    function changeColor(id) {
-      const color = prompt("Enter hex color (e.g., #ff00ff):");
-      if (!color) return;
-      const layer = layers.find(l => l.id === id);
-      if (layer) {
-        layer.color = color;
-        renderCanvas();
+      if (!typeMap[data.type]) {
+        typeMap[data.type] = [];
       }
-    }
-
-    function downloadImage() {
-      const link = document.createElement('a');
-      link.download = 'character.png';
-      link.href = canvas.toDataURL();
-      link.click();
-    }
-
-    preloadImages(() => {
-      setupUI();
-      renderCanvas();
+      typeMap[data.type].push({ ...data, element: img });
     });
+
+    for (const [type, items] of Object.entries(typeMap)) {
+      const container = document.createElement('div');
+      const title = document.createElement('strong');
+      title.textContent = type.toUpperCase();
+      container.appendChild(title);
+
+      // If only one allowed at a time → dropdown
+      if (items.some(i => !i.required)) {
+        const select = document.createElement('select');
+        select.innerHTML = `<option value="">None</option>`;
+        items.forEach(({ id, element, required }) => {
+          const option = document.createElement('option');
+          option.value = id;
+          option.textContent = id;
+          if (required) option.selected = true;
+          select.appendChild(option);
+        });
+        select.onchange = () => {
+          items.forEach(({ id, element }) => {
+            element.style.display = (select.value === id || element.dataset.required === "true") ? "block" : "none";
+          });
+        };
+        container.appendChild(select);
+      } else {
+        // Optional toggles
+        items.forEach(({ id, element, required }) => {
+          const label = document.createElement('label');
+          const input = document.createElement('input');
+          input.type = "checkbox";
+          input.checked = required;
+          input.onchange = () => {
+            element.style.display = input.checked ? "block" : "none";
+          };
+          label.appendChild(input);
+          label.appendChild(document.createTextNode(" " + id));
+          container.appendChild(label);
+        });
+      }
+
+      // Optional color picker if "C" in file name
+      if (items.some(i => i.src.includes("C"))) {
+        const colorInput = document.createElement('input');
+        colorInput.type = "color";
+        colorInput.className = "color-button";
+        colorInput.oninput = () => {
+          items.forEach(({ element }) => {
+            element.style.filter = `brightness(0) saturate(100%) sepia(1) hue-rotate(0deg) drop-shadow(0 0 0 ${colorInput.value})`;
+          });
+        };
+        container.appendChild(colorInput);
+      }
+
+      controlPanel.appendChild(container);
+      controlPanel.appendChild(document.createElement('hr'));
+    }
+
+    // PNG Download
+    function downloadImage() {
+      const canvas = document.createElement('canvas');
+      canvas.width = canvasArea.clientWidth;
+      canvas.height = canvasArea.clientHeight;
+      const ctx = canvas.getContext('2d');
+
+      const images = Array.from(canvasArea.querySelectorAll('img')).filter(img => img.style.display !== "none");
+      images.sort((a, b) => parseInt(a.dataset.layer) - parseInt(b.dataset.layer));
+
+      let loaded = 0;
+      const tempImgs = images.map(img => {
+        const temp = new Image();
+        temp.crossOrigin = "anonymous";
+        temp.src = img.src;
+        temp.onload = () => {
+          loaded++;
+          if (loaded === images.length) {
+            images.forEach(img => {
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            });
+            const a = document.createElement('a');
+            a.download = 'custom_character.png';
+            a.href = canvas.toDataURL();
+            a.click();
+          }
+        };
+        return temp;
+      });
+    }
   </script>
 </body>
 </html>
