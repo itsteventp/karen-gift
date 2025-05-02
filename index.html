@@ -138,112 +138,94 @@
             link.href = canvas.toDataURL();
             link.click();
         });
-
-        // You would replace this static array with the actual parsed data of your CSV
+    
         const csvData = [
-            { filename: 'head_01', Class: 'bodypart', Type: 'head', Variation: '01', Dependencies: '', Color: 'FALSE', Layer: '1' },
-            { filename: 'head_02', Class: 'bodypart', Type: 'head', Variation: '02', Dependencies: '', Color: 'FALSE', Layer: '1' },
-            { filename: 'head_03', Class: 'bodypart', Type: 'head', Variation: '01', Dependencies: '', Color: 'FALSE', Layer: '1' },
+            { filename: 'head_01.png', Class: 'bodypart', Type: 'head', Variation: '01', Dependencies: '', Color: 'FALSE', Layer: '1' },
+            { filename: 'head_02.png', Class: 'bodypart', Type: 'head', Variation: '02', Dependencies: '', Color: 'FALSE', Layer: '1'  },
+            { filename: 'head_03.png', Class: 'bodypart', Type: 'head', Variation: '03', Dependencies: '', Color: 'FALSE', Layer: '1'  }
             // More entries go here...
         ];
-
+    
         function init() {
             populateDropdowns(csvData);
             updateCanvas();
             setupEventListeners();
         }
-
+    
         function setupEventListeners() {
-            document.getElementById('head-select').addEventListener('change', updateCanvas);
-            document.getElementById('larm-select').addEventListener('change', updateCanvas);
-            document.getElementById('rarm-select').addEventListener('change', updateCanvas);
-            document.getElementById('lleg-select').addEventListener('change', updateCanvas);
-            document.getElementById('rleg-select').addEventListener('change', updateCanvas);
-            document.getElementById('shirt-select').addEventListener('change', updateCanvas);
-            document.getElementById('shirt-color').addEventListener('input', updateCanvas);
-            document.getElementById('jacket-select').addEventListener('change', updateCanvas);
-            document.getElementById('jacket-color').addEventListener('input', updateCanvas);
-            document.getElementById('pants-select').addEventListener('change', updateCanvas);
-            document.getElementById('pants-color').addEventListener('input', updateCanvas);
-            document.getElementById('face-select').addEventListener('change', updateCanvas);
-            document.getElementById('hair-select').addEventListener('change', updateCanvas);
-            document.getElementById('lshoe-select').addEventListener('change', updateCanvas);
-            document.getElementById('rshoe-select').addEventListener('change', updateCanvas);
+            // Add event listeners for dropdowns and inputs
+            document.querySelectorAll('#controls select, #controls input[type="color"]').forEach(input => {
+                input.addEventListener('change', updateCanvas);
+            });
         }
-
+    
+        function populateDropdowns(data) {
+            const headSelect = document.getElementById('head-select');
+            const shirtSelect = document.getElementById('shirt-select');
+            // Populate dropdowns based on unique combinations from CSV
+    
+            data.forEach(item => {
+                if (item.Type === 'head') {
+                    const option = document.createElement('option');
+                    option.value = item.filename;
+                    option.textContent = `Variation ${item.Variation}`;
+                    headSelect.appendChild(option);
+                }
+    
+                if (item.Type === 'shirt') {
+                    const option = document.createElement('option');
+                    option.value = item.filename;
+                    option.textContent = `Variation ${item.Variation} - ${item.filename}`;
+                    shirtSelect.appendChild(option);
+                }
+                // Repeat for other types
+            });
+        }
+    
         function loadImage(filename, callback) {
             const img = new Image();
-            img.src = `images/${filename}.png`;
+            img.src = `images/${filename}`;
             img.onload = () => callback(img);
         }
-
-        function applyTint(baseImg, outlineImg, color) {
+    
+        function applyTint(img, color) {
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = img.width;
+            tempCanvas.height = img.height;
+            tempCtx.drawImage(img, 0, 0);
+    
+            let imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            let data = imgData.data;
+    
             const rTint = parseInt(color.slice(1, 3), 16);
             const gTint = parseInt(color.slice(3, 5), 16);
             const bTint = parseInt(color.slice(5, 7), 16);
-
-            ctx.drawImage(basePath, 0, 0);
-            ctx.globalCompositeOperation = 'source-in';
-            ctx.fillStyle = `rgba(${rTint},${gTint},${bTint},1)`;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.globalCompositeOperation = 'destination-atop';
-            ctx.drawImage(img, 0, 0);
-            ctx.globalCompositeOperation = 'source-over';
+    
+            for (let i = 0; i < data.length; i += 4) {
+                if (data[i + 3] > 0) { // Non-transparent pixel
+                    data[i] = (data[i] / 255) * rTint;
+                    data[i + 1] = (data[i + 1] / 255) * gTint;
+                    data[i + 2] = (data[i + 2] / 255) * bTint;
+                }
+            }
+    
+            tempCtx.putImageData(imgData, 0, 0);
+            ctx.drawImage(tempCanvas, 0, 0);
         }
-
+    
         function updateCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            const headVariation = document.getElementById('head-select').value;
-            const larmVariation = document.getElementById('larm-select').value;
-            const rarmVariation = document.getElementById('rarm-select').value;
-            const llegVariation = document.getElementById('lleg-select').value;
-            const rlegVariation = document.getElementById('rleg-select').value;
-
-            const shirtVariation = document.getElementById('shirt-select').value;
+            const selectedHead = document.getElementById('head-select').value;
+            const selectedShirt = document.getElementById('shirt-select').value;
             const shirtColor = document.getElementById('shirt-color').value;
-            const jacketVariation = document.getElementById('jacket-select').value;
-            const jacketColor = document.getElementById('jacket-color').value;
-            const pantsVariation = document.getElementById('pants-select').value;
-            const pantsColor = document.getElementById('pants-color').value;
-            const hairVariation = document.getElementById('hair-select').value;
-            const faceVariation = document.getElementById('face-select').value;
-            const lshoeVariation = document.getElementById('lshoe-select').value;
-            const rshoeVariation = document.getElementById('rshoe-select').value;
-
-            const layers = [];
-
-            csvData.forEach(item => {
-                if ((item.Type === 'head' && item.Variation === headVariation)
-                    || (item.Type === 'larm' && item.Variation === llegVariation)
-                    || (item.Type === 'rarm' && item.Variation === rlegVariation)
-                    || item.Type === 'torso'
-                    || (item.Type === 'shirt' && item.Variation === shirtVariation && item.Dependencies.includes('larm_' + llegVariation) && item.Dependencies.includes(`rarm_${rlegVariation}`))
-                    || item.Type === 'jacket'
-                    || (item.Type === 'pants' && item.Dependencies.includes(`lleg_${llegVariation}`) && item.Dependencies.includes(`rleg_${rshoeVariation}`))
-                    || item.Type === 'lshoe'
-                    || item.Type === 'rshoe'
-                    || item.Type === 'face'
-                    || (item.Type === 'hair' && item.Variation === hairVariation)
-                ) {
-                    layers.push(item);
-                }
-            });
-
-            layers.sort((a, b) => a.Layer - b.Layer);
-
-            layers.forEach(item => {
-                loadImage(item.filename, (img) => {
-                    if (item.Color === 'TRUE') {
-                        const color = document.getElementById(`${item.Type}-color`).value;
-                        applyTint(img, color);
-                    } else {
-                        ctx.drawImage(img, 0, 0);
-                    }
-                });
-            });
+    
+            // Load and draw selected images directly using filenames
+            loadImage(selectedHead, (img) => ctx.drawImage(img, 0, 0));
+    
+            loadImage(selectedShirt, (img) => applyTint(img, shirtColor));
         }
-
+    
         init(); // Call init to start
     </script>
 </body>
