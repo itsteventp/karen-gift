@@ -1,133 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Character Composer</title>
-  <style>
-    body {
-      display: flex;
-      margin: 0;
-      font-family: sans-serif;
-    }
-    canvas {
-      width: 60vw;
-      aspect-ratio: 2160 / 3840;
-      background: #eee;
-    }
-    .sidebar {
-      width: 40vw;
-      padding: 20px;
-      background: #f9f9f9;
-      overflow-y: auto;
-    }
-    .control-group {
-      margin-bottom: 10px;
-    }
-    label {
-      display: block;
-      margin-bottom: 4px;
-    }
-    select {
-      width: 100%;
-      padding: 4px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Customization</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: space-between;
+        }
+        #canvas-container {
+            position: relative;
+            width: 2160px;
+            height: 3840px;
+            background-color: #f0f0f0;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #controls {
+            width: 300px;
+            padding: 20px;
+        }
+        .image-option {
+            margin-bottom: 15px;
+        }
+    </style>
 </head>
 <body>
-  <canvas id="mainCanvas" width="2160" height="3840"></canvas>
-  <div class="sidebar" id="controls"></div>
+    <div id="canvas-container">
+        <canvas id="canvas" width="2160" height="3840"></canvas>
+    </div>
+    <div id="controls">
+        <div class="image-option">
+            <label for="hairSelect">Select Hair Pose</label>
+            <select id="hairSelect">
+                <option value="hair_01_01.png">Hair Pose 1</option>
+                <option value="hair_01_02.png">Hair Pose 2</option>
+            </select>
+        </div>
 
-  <script>
-    const canvas = document.getElementById("mainCanvas");
-    const ctx = canvas.getContext("2d");
+        <div class="image-option">
+            <label for="colorPicker">Pick Hair Color</label>
+            <input type="color" id="colorPicker" value="#ffffff">
+        </div>
+    </div>
 
-    const bodyParts = {
-      head: { count: 3 },
-      torso: { count: 1 },
-      larm: { count: 4 },
-      rarm: { count: 4 },
-      lleg: { count: 4 },
-      rleg: { count: 4 }
-    };
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
 
-    // Per-image zIndex values
-    const imageZIndex = {
-      head: { "01": 5, "02": 5, "03": 5 },
-      torso: { "01": 3 },
-      larm: { "01": 1, "02": 4, "03": 1, "04": 1 },
-      rarm: { "01": 1, "02": 4, "03": 1, "04": 1 },
-      lleg: { "01": 1, "02": 1, "03": 1, "04": 1 },
-      rleg: { "01": 1, "02": 1, "03": 1, "04": 1 }
-    };
-
-    const state = {};
-
-    function createControls() {
-      const container = document.getElementById("controls");
-      for (const part in bodyParts) {
-        const div = document.createElement("div");
-        div.className = "control-group";
-
-        const label = document.createElement("label");
-        label.textContent = `Select ${part}`;
-        label.htmlFor = part;
-
-        const select = document.createElement("select");
-        select.id = part;
-        for (let i = 1; i <= bodyParts[part].count; i++) {
-          const value = i.toString().padStart(2, "0");
-          const option = document.createElement("option");
-          option.value = value;
-          option.textContent = `Variation ${value}`;
-          select.appendChild(option);
-        }
-
-        select.addEventListener("change", () => {
-          state[part] = select.value;
-          drawCharacter();
-        });
-
-        div.appendChild(label);
-        div.appendChild(select);
-        container.appendChild(div);
-
-        // Set initial state
-        state[part] = "01";
-      }
-    }
-
-    function drawCharacter() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const drawQueue = [];
-
-      for (const part in state) {
-        const variation = state[part];
-        const img = new Image();
-        const z = imageZIndex[part]?.[variation] ?? 0;
-        const src = `images/${part}_${variation}.png`;
-
-        drawQueue.push({ img, z });
-
-        img.onload = () => {
-          // Redraw everything when all images are loaded
-          loadedImages++;
-          if (loadedImages === drawQueue.length) {
-            drawQueue
-              .sort((a, b) => a.z - b.z)
-              .forEach(({ img }) => ctx.drawImage(img, 0, 0));
-          }
+        const images = {
+            "hair_01_01": "images/hair_01_01.png", // Outline
+            "hair_01_01_color": "images/hair_01_01_color.png" // Colorable layer
         };
 
-        img.src = src;
-      }
+        let hairImage = new Image();
+        let hairColorImage = new Image();
 
-      let loadedImages = 0;
-    }
+        // Load initial images
+        hairImage.src = images["hair_01_01"];
+        hairColorImage.src = images["hair_01_01_color"];
 
-    createControls();
-    drawCharacter();
-  </script>
+        hairImage.onload = function() {
+            ctx.drawImage(hairImage, 0, 0); // Draw the outline
+        };
+
+        hairColorImage.onload = function() {
+            ctx.drawImage(hairColorImage, 0, 0); // Draw the colorable layer
+        };
+
+        // Change color based on color picker
+        document.getElementById('colorPicker').addEventListener('input', function(event) {
+            const selectedColor = event.target.value;
+            changeColor(selectedColor);
+        });
+
+        // Function to change the color of the hair_01_01_color image
+        function changeColor(color) {
+            // Clear the previous colorable layer
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Redraw the outline and then the color layer
+            ctx.drawImage(hairImage, 0, 0);
+
+            // Create a new image data object for the colorable layer
+            const colorLayer = ctx.createImageData(hairColorImage.width, hairColorImage.height);
+            const data = colorLayer.data;
+
+            // Loop through each pixel in the image data
+            for (let i = 0; i < data.length; i += 4) {
+                // Modify the color of the image's pixels (RGBA)
+                data[i] = parseInt(color.substr(1, 2), 16); // Red
+                data[i + 1] = parseInt(color.substr(3, 2), 16); // Green
+                data[i + 2] = parseInt(color.substr(5, 2), 16); // Blue
+                data[i + 3] = 255; // Full opacity
+            }
+
+            // Set the color image layer with the updated data
+            ctx.putImageData(colorLayer, 0, 0);
+        }
+    </script>
 </body>
 </html>
