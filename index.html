@@ -1,140 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Character Builder</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Character Composer</title>
   <style>
     body {
       display: flex;
       margin: 0;
       font-family: sans-serif;
     }
-    #canvasContainer {
-      flex: 1;
+    canvas {
+      width: 60vw;
+      aspect-ratio: 2160 / 3840;
       background: #eee;
-      display: flex;
-      justify-content: center;
-      align-items: center;
     }
-    #controls {
-      width: 300px;
+    .sidebar {
+      width: 40vw;
       padding: 20px;
       background: #f9f9f9;
-      border-left: 1px solid #ccc;
+      overflow-y: auto;
     }
-    canvas {
-      background: white;
-      width: 540px;
-      height: 960px;
+    .control-group {
+      margin-bottom: 10px;
+    }
+    label {
+      display: block;
+      margin-bottom: 4px;
     }
     select {
       width: 100%;
-      margin-bottom: 15px;
+      padding: 4px;
     }
   </style>
 </head>
 <body>
-  <div id="canvasContainer">
-    <canvas id="characterCanvas" width="2160" height="3840"></canvas>
-  </div>
-  <div id="controls">
-    <h3>Body Parts</h3>
-    <label>Head:
-      <select id="headSelect">
-        <option value="01">01</option>
-        <option value="02">02</option>
-        <option value="03">03</option>
-      </select>
-    </label><br>
-    <label>Torso:
-      <select id="torsoSelect">
-        <option value="01">01</option>
-      </select>
-    </label><br>
-    <label>Left Arm:
-      <select id="larmSelect">
-        <option value="01">01</option>
-        <option value="02">02</option>
-        <option value="03">03</option>
-        <option value="04">04</option>
-      </select>
-    </label><br>
-    <label>Right Arm:
-      <select id="rarmSelect">
-        <option value="01">01</option>
-        <option value="02">02</option>
-        <option value="03">03</option>
-        <option value="04">04</option>
-      </select>
-    </label><br>
-    <label>Left Leg:
-      <select id="llegSelect">
-        <option value="01">01</option>
-        <option value="02">02</option>
-        <option value="03">03</option>
-        <option value="04">04</option>
-      </select>
-    </label><br>
-    <label>Right Leg:
-      <select id="rlegSelect">
-        <option value="01">01</option>
-        <option value="02">02</option>
-        <option value="03">03</option>
-        <option value="04">04</option>
-      </select>
-    </label>
-  </div>
+  <canvas id="mainCanvas" width="2160" height="3840"></canvas>
+  <div class="sidebar" id="controls"></div>
 
   <script>
-    const canvas = document.getElementById('characterCanvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.getElementById("mainCanvas");
+    const ctx = canvas.getContext("2d");
 
-    const bodyParts = [
-      { id: 'head', zIndex: 5 },
-      { id: 'torso', zIndex: 4 },
-      { id: 'larm', zIndex: 3 },
-      { id: 'rarm', zIndex: 3 },
-      { id: 'lleg', zIndex: 2 },
-      { id: 'rleg', zIndex: 2 },
-    ];
-
-    const selections = {
-      head: '01',
-      torso: '01',
-      larm: '01',
-      rarm: '01',
-      lleg: '01',
-      rleg: '01',
+    const bodyParts = {
+      head: { count: 3 },
+      torso: { count: 1 },
+      larm: { count: 4 },
+      rarm: { count: 4 },
+      lleg: { count: 4 },
+      rleg: { count: 4 }
     };
 
-    function loadImagesAndDraw() {
+    // Per-image zIndex values
+    const imageZIndex = {
+      head: { "01": 5, "02": 5, "03": 5 },
+      torso: { "01": 3 },
+      larm: { "01": 2, "02": 3, "03": 4, "04": 5 },
+      rarm: { "01": 2, "02": 3, "03": 4, "04": 5 },
+      lleg: { "01": 1, "02": 1, "03": 2, "04": 3 },
+      rleg: { "01": 1, "02": 1, "03": 2, "04": 3 }
+    };
+
+    const state = {};
+
+    function createControls() {
+      const container = document.getElementById("controls");
+      for (const part in bodyParts) {
+        const div = document.createElement("div");
+        div.className = "control-group";
+
+        const label = document.createElement("label");
+        label.textContent = `Select ${part}`;
+        label.htmlFor = part;
+
+        const select = document.createElement("select");
+        select.id = part;
+        for (let i = 1; i <= bodyParts[part].count; i++) {
+          const value = i.toString().padStart(2, "0");
+          const option = document.createElement("option");
+          option.value = value;
+          option.textContent = `Variation ${value}`;
+          select.appendChild(option);
+        }
+
+        select.addEventListener("change", () => {
+          state[part] = select.value;
+          drawCharacter();
+        });
+
+        div.appendChild(label);
+        div.appendChild(select);
+        container.appendChild(div);
+
+        // Set initial state
+        state[part] = "01";
+      }
+    }
+
+    function drawCharacter() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      const sortedParts = [...bodyParts].sort((a, b) => a.zIndex - b.zIndex);
-      let loadedCount = 0;
+      const drawQueue = [];
 
-      sortedParts.forEach(part => {
+      for (const part in state) {
+        const variation = state[part];
         const img = new Image();
+        const z = imageZIndex[part]?.[variation] ?? 0;
+        const src = `images/${part}_${variation}.png`;
+
+        drawQueue.push({ img, z });
+
         img.onload = () => {
-          ctx.drawImage(img, 0, 0);
-          loadedCount++;
+          // Redraw everything when all images are loaded
+          loadedImages++;
+          if (loadedImages === drawQueue.length) {
+            drawQueue
+              .sort((a, b) => a.z - b.z)
+              .forEach(({ img }) => ctx.drawImage(img, 0, 0));
+          }
         };
-        img.src = `images/${part.id}_${selections[part.id]}.png`;
-      });
+
+        img.src = src;
+      }
+
+      let loadedImages = 0;
     }
 
-    function setupListeners() {
-      bodyParts.forEach(part => {
-        const select = document.getElementById(`${part.id}Select`);
-        select.addEventListener('change', () => {
-          selections[part.id] = select.value;
-          loadImagesAndDraw();
-        });
-      });
-    }
-
-    setupListeners();
-    loadImagesAndDraw();
+    createControls();
+    drawCharacter();
   </script>
 </body>
 </html>
