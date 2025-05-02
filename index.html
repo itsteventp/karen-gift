@@ -3,176 +3,141 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Character Customizer</title>
+  <title>Character Builder</title>
   <style>
     body {
-      display: flex;
       margin: 0;
-      font-family: sans-serif;
-      height: 100vh;
-    }
-    #canvas-area {
-      width: 76%;
-      background: #eee;
       display: flex;
-      align-items: center;
+      height: 100vh;
+      font-family: sans-serif;
+    }
+
+    #main {
+      flex: 1;
+      display: flex;
       justify-content: center;
-      aspect-ratio: 6 / 19;
-      position: relative;
-      overflow: hidden;
+      align-items: center;
+      background: #eee;
     }
-    #canvas-area img {
-      position: absolute;
-      max-width: 100%;
-      max-height: 100%;
-    }
+
     #controls {
-      width: 24%;
+      width: 300px;
+      padding: 20px;
+      background: #fff;
       overflow-y: auto;
-      padding: 10px;
-      box-sizing: border-box;
-      background: #fafafa;
       border-left: 1px solid #ccc;
     }
+
     label {
       display: block;
-      margin: 6px 0;
+      margin: 10px 0 5px;
+      font-weight: bold;
     }
-    .color-button {
-      margin-left: 10px;
+
+    select {
+      width: 100%;
+      padding: 5px;
+    }
+
+    canvas {
+      width: 540px;  /* 2160 / 4 */
+      height: 960px; /* 3840 / 4 */
+      background: transparent;
     }
   </style>
 </head>
 <body>
-  <div id="canvas-area" id="canvas">
-    <!-- Images inserted dynamically -->
+  <div id="main">
+    <canvas id="characterCanvas" width="2160" height="3840"></canvas>
   </div>
   <div id="controls">
-    <h2>Customize</h2>
-    <div id="control-panel"></div>
-    <button onclick="downloadImage()">Download PNG</button>
+    <h3>Body Parts</h3>
+    <div id="body-controls"></div>
   </div>
 
   <script>
-    // Example image metadata
-    const imageData = [
-      { src: "images/YC.png", type: "top", id: "square", layer: 5, required: false },
-      { src: "images/BC.png", type: "top", id: "circle", layer: 3, required: false },
-      { src: "images/RC.png", type: "bottom", id: "circle", layer: 1, required: true },
-      { src: "images/YO.png", type: "top", id: "square", layer: 6, required: false },
-      { src: "images/BO.png", type: "top", id: "circle", layer: 4, required: false },
-      { src: "images/RO.png", type: "bottom", id: "circle", layer: 2, required: true },
+    const canvas = document.getElementById("characterCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const imagesData = [
+      { id: "head_01", type: "head", src: "images/head_01.png", layer: 3, group: "body" },
+      { id: "head_02", type: "head", src: "images/head_02.png", layer: 3, group: "body" },
+      { id: "head_03", type: "head", src: "images/head_03.png", layer: 2, group: "body" },
+      { id: "torso", type: "torso", src: "images/torso.png", layer: 2, group: "body" },
+      { id: "rarm_01", type: "rarm", src: "images/rarm_01.png", layer: 1, group: "body" },
+      { id: "rarm_02", type: "rarm", src: "images/rarm_02.png", layer: 1, group: "body" },
+      { id: "larm_01", type: "larm", src: "images/larm_01.png", layer: 1, group: "body" },
+      { id: "larm_02", type: "larm", src: "images/larm_02.png", layer: 1, group: "body" },
+      { id: "rleg_01", type: "rleg", src: "images/rleg_01.png", layer: 1, group: "body" },
+      { id: "rleg_02", type: "rleg", src: "images/rleg_02.png", layer: 1, group: "body" },
+      { id: "lleg_01", type: "lleg", src: "images/lleg_01.png", layer: 1, group: "body" },
+      { id: "lleg_02", type: "lleg", src: "images/lleg_02.png", layer: 1, group: "body" }
     ];
 
-    const canvasArea = document.getElementById('canvas-area');
-    const controlPanel = document.getElementById('control-panel');
-    const typeMap = {};
+    const imageElements = {};
+    const currentSelection = {};
 
-    // Create image elements and UI
-    imageData.forEach(data => {
-      const img = document.createElement('img');
-      img.src = data.src;
-      img.dataset.type = data.type;
-      img.dataset.id = data.id;
-      img.dataset.layer = data.layer;
-      img.dataset.required = data.required;
-      img.style.zIndex = data.layer;
-      if (!data.required) img.style.display = "none";
+    // Load all images
+    const loadImages = async () => {
+      const promises = imagesData.map(data => {
+        return new Promise(resolve => {
+          const img = new Image();
+          img.src = data.src;
+          img.onload = () => {
+            imageElements[data.id] = { img, ...data };
+            resolve();
+          };
+        });
+      });
+      await Promise.all(promises);
+      initializeControls();
+      renderCanvas();
+    };
 
-      canvasArea.appendChild(img);
+    const initializeControls = () => {
+      const bodyControls = document.getElementById("body-controls");
+      const bodyTypes = [...new Set(imagesData.filter(i => i.group === "body").map(i => i.type))];
 
-      if (!typeMap[data.type]) {
-        typeMap[data.type] = [];
-      }
-      typeMap[data.type].push({ ...data, element: img });
-    });
+      bodyTypes.forEach(type => {
+        const label = document.createElement("label");
+        label.textContent = type;
 
-    for (const [type, items] of Object.entries(typeMap)) {
-      const container = document.createElement('div');
-      const title = document.createElement('strong');
-      title.textContent = type.toUpperCase();
-      container.appendChild(title);
+        const select = document.createElement("select");
+        const options = imagesData.filter(i => i.type === type);
 
-      // If only one allowed at a time → dropdown
-      if (items.some(i => !i.required)) {
-        const select = document.createElement('select');
-        select.innerHTML = `<option value="">None</option>`;
-        items.forEach(({ id, element, required }) => {
-          const option = document.createElement('option');
-          option.value = id;
-          option.textContent = id;
-          if (required) option.selected = true;
+        options.forEach(opt => {
+          const option = document.createElement("option");
+          option.value = opt.id;
+          option.textContent = opt.id;
           select.appendChild(option);
         });
-        select.onchange = () => {
-          items.forEach(({ id, element }) => {
-            element.style.display = (select.value === id || element.dataset.required === "true") ? "block" : "none";
-          });
-        };
-        container.appendChild(select);
-      } else {
-        // Optional toggles
-        items.forEach(({ id, element, required }) => {
-          const label = document.createElement('label');
-          const input = document.createElement('input');
-          input.type = "checkbox";
-          input.checked = required;
-          input.onchange = () => {
-            element.style.display = input.checked ? "block" : "none";
-          };
-          label.appendChild(input);
-          label.appendChild(document.createTextNode(" " + id));
-          container.appendChild(label);
+
+        select.addEventListener("change", () => {
+          currentSelection[type] = select.value;
+          renderCanvas();
         });
-      }
 
-      // Optional color picker if "C" in file name
-      if (items.some(i => i.src.includes("C"))) {
-        const colorInput = document.createElement('input');
-        colorInput.type = "color";
-        colorInput.className = "color-button";
-        colorInput.oninput = () => {
-          items.forEach(({ element }) => {
-            element.style.filter = `brightness(0) saturate(100%) sepia(1) hue-rotate(0deg) drop-shadow(0 0 0 ${colorInput.value})`;
-          });
-        };
-        container.appendChild(colorInput);
-      }
+        // Set default selection
+        currentSelection[type] = options[0].id;
 
-      controlPanel.appendChild(container);
-      controlPanel.appendChild(document.createElement('hr'));
-    }
-
-    // PNG Download
-    function downloadImage() {
-      const canvas = document.createElement('canvas');
-      canvas.width = canvasArea.clientWidth;
-      canvas.height = canvasArea.clientHeight;
-      const ctx = canvas.getContext('2d');
-
-      const images = Array.from(canvasArea.querySelectorAll('img')).filter(img => img.style.display !== "none");
-      images.sort((a, b) => parseInt(a.dataset.layer) - parseInt(b.dataset.layer));
-
-      let loaded = 0;
-      const tempImgs = images.map(img => {
-        const temp = new Image();
-        temp.crossOrigin = "anonymous";
-        temp.src = img.src;
-        temp.onload = () => {
-          loaded++;
-          if (loaded === images.length) {
-            images.forEach(img => {
-              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            });
-            const a = document.createElement('a');
-            a.download = 'custom_character.png';
-            a.href = canvas.toDataURL();
-            a.click();
-          }
-        };
-        return temp;
+        label.appendChild(select);
+        bodyControls.appendChild(label);
       });
-    }
+    };
+
+    const renderCanvas = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const selectedImages = Object.values(currentSelection).map(id => imageElements[id]);
+
+      selectedImages
+        .sort((a, b) => a.layer - b.layer)
+        .forEach(({ img }) => {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        });
+    };
+
+    loadImages();
   </script>
 </body>
 </html>
