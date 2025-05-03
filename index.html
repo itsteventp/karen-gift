@@ -334,479 +334,479 @@
     </div>
 
     <script>
-    // Global variables
-    let characterData = [];
-    let loadedImages = {};
-    const canvas = document.getElementById('character-canvas');
-    const ctx = canvas.getContext('2d');
-    const loadingMessage = document.getElementById('loading-message');
-    const errorMsg = document.getElementById('error-msg');
+        // Global variables
+        let characterData = [];
+        let loadedImages = {};
+        const canvas = document.getElementById('character-canvas');
+        const ctx = canvas.getContext('2d');
+        const loadingMessage = document.getElementById('loading-message');
+        const errorMsg = document.getElementById('error-msg');
+        
+        // Current state
+        let currentState = {
+            bodyparts: {
+                torso: '01',
+                head: '01',
+                larm: '01',
+                rarm: '01',
+                lleg: '01',
+                rleg: '01'
+            },
+            clothing: {
+                shirt: { active: true, variant: '01', color: '#000000' },
+                hair: { active: true, variant: '01', color: '#000000' },
+                face: { active: true, variant: '01', color: '#000000' },
+                jacket: { active: false, variant: '01', color: '#000000' },
+                pants: { active: true, variant: '01', color: '#000000' },
+                lshoe: { active: true, variant: '01', color: '#000000' },
+                rshoe: { active: true, variant: '01', color: '#000000' }
+            }
+        };
     
-    // Current state
-    let currentState = {
-        bodyparts: {
-            torso: '01',
-            head: '01',
-            larm: '01',
-            rarm: '01',
-            lleg: '01',
-            rleg: '01'
-        },
-        clothing: {
-            shirt: { active: true, variant: '01', color: '#000000' },
-            hair: { active: true, variant: '01', color: '#000000' },
-            face: { active: true, variant: '01', color: '#000000' },
-            jacket: { active: false, variant: '01', color: '#000000' },
-            pants: { active: true, variant: '01', color: '#000000' },
-            lshoe: { active: true, variant: '01', color: '#000000' },
-            rshoe: { active: true, variant: '01', color: '#000000' }
-        }
-    };
-
-    // Dependencies mapping
-    const dependencies = {
-        shirt: ['larm', 'rarm'],
-        jacket: ['larm', 'rarm'],
-        pants: ['lleg', 'rleg'],
-        hair: ['head'],
-        face: ['head'],
-        lshoe: ['lleg'],
-        rshoe: ['rleg']
-    };
-
-    // Variations count
-    const variations = {
-        bodyparts: {
-            torso: 1,
-            head: 3,
-            larm: 4,
-            rarm: 4,
-            lleg: 4,
-            rleg: 4
-        },
-        clothing: {
-            shirt: 3,
-            hair: 2,
-            face: 6,
-            jacket: 2,
-            pants: 3,
-            lshoe: 3,
-            rshoe: 3
-        }
-    };
-
-    // Initialize the app
-    window.onload = async function() {
-        try {
-            loadingMessage.textContent = "Loading character data...";
-            await loadCharacterData();
-            
-            loadingMessage.textContent = "Setting up controls...";
-            setupBodypartControls();
-            setupClothingControls();
-            
-            // Setup download button
-            document.getElementById('download-btn').addEventListener('click', downloadCharacter);
-            
-            loadingMessage.textContent = "Rendering character...";
-            await renderCharacter();
-            
-            // Setup canvas scaling
-            setupCanvasScaling();
-            
-            // Hide loading screen
-            document.getElementById('loading-screen').style.display = 'none';
-        } catch (error) {
-            console.error('Initialization error:', error);
-            errorMsg.textContent = 'Failed to initialize: ' + error.message;
-        }
-    };
-
-    // Load character data from CSV
-    async function loadCharacterData() {
-        try {
-            const response = await fetch('character_data.csv');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+        // Dependencies mapping
+        const dependencies = {
+            shirt: ['larm', 'rarm'],
+            jacket: ['larm', 'rarm'],
+            pants: ['lleg', 'rleg'],
+            hair: ['head'],
+            face: ['head'],
+            lshoe: ['lleg'],
+            rshoe: ['rleg']
+        };
+    
+        // Variations count
+        const variations = {
+            bodyparts: {
+                torso: 1,
+                head: 3,
+                larm: 4,
+                rarm: 4,
+                lleg: 4,
+                rleg: 4
+            },
+            clothing: {
+                shirt: 3,
+                hair: 2,
+                face: 6,
+                jacket: 2,
+                pants: 3,
+                lshoe: 3,
+                rshoe: 3
             }
-            
-            const csvText = await response.text();
-            
-            // Parse CSV
-            const lines = csvText.split('\n');
-            if (lines.length <= 1) {
-                throw new Error("CSV file appears to be empty");
+        };
+    
+        // Initialize the app
+        window.onload = async function() {
+            try {
+                loadingMessage.textContent = "Loading character data...";
+                await loadCharacterData();
+                
+                loadingMessage.textContent = "Setting up controls...";
+                setupBodypartControls();
+                setupClothingControls();
+                
+                // Setup download button
+                document.getElementById('download-btn').addEventListener('click', downloadCharacter);
+                
+                loadingMessage.textContent = "Rendering character...";
+                await renderCharacter();
+                
+                // Setup canvas scaling
+                setupCanvasScaling();
+                
+                // Hide loading screen
+                document.getElementById('loading-screen').style.display = 'none';
+            } catch (error) {
+                console.error('Initialization error:', error);
+                errorMsg.textContent = 'Failed to initialize: ' + error.message;
             }
-            
-            const headers = lines[0].split(',').map(h => h.trim());
-            
-            for (let i = 1; i < lines.length; i++) {
-                if (lines[i].trim() === '') continue;
+        };
+    
+        // Load character data from CSV
+        async function loadCharacterData() {
+            try {
+                const response = await fetch('character_data.csv');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
-                const values = lines[i].split(',');
-                const item = {};
+                const csvText = await response.text();
                 
-                headers.forEach((header, index) => {
-                    item[header] = values[index]?.trim() || '';
+                // Parse CSV
+                const lines = csvText.split('\n');
+                if (lines.length <= 1) {
+                    throw new Error("CSV file appears to be empty");
+                }
+                
+                const headers = lines[0].split(',').map(h => h.trim());
+                
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim() === '') continue;
+                    
+                    const values = lines[i].split(',');
+                    const item = {};
+                    
+                    headers.forEach((header, index) => {
+                        item[header] = values[index]?.trim() || '';
+                    });
+                    
+                    characterData.push(item);
+                }
+                
+                console.log('Character data loaded:', characterData.length, 'items');
+            } catch (error) {
+                console.error('Error loading character data:', error);
+                throw error;
+            }
+        }
+    
+        // Setup bodypart controls
+        function setupBodypartControls() {
+            const container = document.getElementById('bodyparts-container');
+            container.innerHTML = ''; // Clear existing content
+            
+            for (const part in variations.bodyparts) {
+                const maxVariation = variations.bodyparts[part];
+                
+                const controlGroup = document.createElement('div');
+                controlGroup.className = 'control-group';
+                
+                const label = document.createElement('label');
+                label.textContent = formatLabel(part);
+                controlGroup.appendChild(label);
+                
+                const select = document.createElement('select');
+                select.id = `${part}-select`;
+                
+                for (let i = 1; i <= maxVariation; i++) {
+                    const option = document.createElement('option');
+                    const varNum = i.toString().padStart(2, '0');
+                    option.value = varNum;
+                    option.textContent = `Pose ${i}`;
+                    select.appendChild(option);
+                }
+                
+                select.addEventListener('change', (e) => {
+                    currentState.bodyparts[part] = e.target.value;
+                    renderCharacter();
                 });
                 
-                characterData.push(item);
+                controlGroup.appendChild(select);
+                container.appendChild(controlGroup);
             }
-            
-            console.log('Character data loaded:', characterData.length, 'items');
-        } catch (error) {
-            console.error('Error loading character data:', error);
-            throw error;
         }
-    }
-
-    // Setup bodypart controls
-    function setupBodypartControls() {
-        const container = document.getElementById('bodyparts-container');
-        container.innerHTML = ''; // Clear existing content
-        
-        for (const part in variations.bodyparts) {
-            const maxVariation = variations.bodyparts[part];
+    
+        // Setup clothing controls
+        function setupClothingControls() {
+            const container = document.getElementById('clothing-container');
+            container.innerHTML = ''; // Clear existing content
             
-            const controlGroup = document.createElement('div');
-            controlGroup.className = 'control-group';
-            
-            const label = document.createElement('label');
-            label.textContent = formatLabel(part);
-            controlGroup.appendChild(label);
-            
-            const select = document.createElement('select');
-            select.id = `${part}-select`;
-            
-            for (let i = 1; i <= maxVariation; i++) {
-                const option = document.createElement('option');
-                const varNum = i.toString().padStart(2, '0');
-                option.value = varNum;
-                option.textContent = `Pose ${i}`;
-                select.appendChild(option);
-            }
-            
-            select.addEventListener('change', (e) => {
-                currentState.bodyparts[part] = e.target.value;
-                renderCharacter();
-            });
-            
-            controlGroup.appendChild(select);
-            container.appendChild(controlGroup);
-        }
-    }
-
-    // Setup clothing controls
-    function setupClothingControls() {
-        const container = document.getElementById('clothing-container');
-        container.innerHTML = ''; // Clear existing content
-        
-        for (const item in variations.clothing) {
-            const maxVariation = variations.clothing[item];
-            
-            const controlGroup = document.createElement('div');
-            controlGroup.className = 'control-group';
-            
-            // Toggle switch
-            const toggleContainer = document.createElement('div');
-            toggleContainer.className = 'toggle-container';
-            
-            const toggleLabel = document.createElement('span');
-            toggleLabel.textContent = formatLabel(item);
-            
-            const toggleSwitch = document.createElement('label');
-            toggleSwitch.className = 'toggle-switch';
-            
-            const toggleInput = document.createElement('input');
-            toggleInput.type = 'checkbox';
-            toggleInput.checked = currentState.clothing[item].active;
-            toggleInput.addEventListener('change', (e) => {
-                currentState.clothing[item].active = e.target.checked;
-                renderCharacter();
-            });
-            
-            const slider = document.createElement('span');
-            slider.className = 'slider';
-            
-            toggleSwitch.appendChild(toggleInput);
-            toggleSwitch.appendChild(slider);
-            toggleContainer.appendChild(toggleSwitch);
-            toggleContainer.appendChild(toggleLabel);
-            controlGroup.appendChild(toggleContainer);
-            
-            // Variant select
-            const select = document.createElement('select');
-            select.id = `${item}-select`;
-            
-            for (let i = 1; i <= maxVariation; i++) {
-                const option = document.createElement('option');
-                const varNum = i.toString().padStart(2, '0');
-                option.value = varNum;
-                option.textContent = `Style ${i}`;
-                select.appendChild(option);
-            }
-            
-            select.addEventListener('change', (e) => {
-                currentState.clothing[item].variant = e.target.value;
-                renderCharacter();
-            });
-            
-            controlGroup.appendChild(select);
-            
-            // Color picker (if applicable)
-            const colorPickerContainer = document.createElement('div');
-            colorPickerContainer.className = 'color-picker-container';
-            
-            const colorLabel = document.createElement('span');
-            colorLabel.className = 'color-picker-label';
-            colorLabel.textContent = 'Color:';
-            
-            const colorPicker = document.createElement('input');
-            colorPicker.type = 'color';
-            colorPicker.className = 'color-picker';
-            colorPicker.value = currentState.clothing[item].color;
-            colorPicker.addEventListener('input', (e) => {
-                currentState.clothing[item].color = e.target.value;
-                renderCharacter();
-            });
-            
-            colorPickerContainer.appendChild(colorLabel);
-            colorPickerContainer.appendChild(colorPicker);
-            controlGroup.appendChild(colorPickerContainer);
-            
-            container.appendChild(controlGroup);
-        }
-    }
-
-    // Render character based on current state - simplified and optimized
-    async function renderCharacter() {
-        // Clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        try {
-            // Collect all parts to render in the correct order
-            const partsToRender = [];
-            
-            // 1. Add body parts
-            for (const part in currentState.bodyparts) {
-                const variation = currentState.bodyparts[part];
-                const filename = `${part}_${variation}`;
+            for (const item in variations.clothing) {
+                const maxVariation = variations.clothing[item];
                 
-                // Find matching part in character data
-                const bodyPart = characterData.find(item => item.filename === filename);
-                if (bodyPart) {
-                    partsToRender.push(bodyPart);
-                }
-            }
-            
-            // 2. Add clothing items
-            for (const item in currentState.clothing) {
-                if (!currentState.clothing[item].active) continue;
+                const controlGroup = document.createElement('div');
+                controlGroup.className = 'control-group';
                 
-                const variant = currentState.clothing[item].variant;
-                const deps = dependencies[item];
-                const depValues = deps.map(dep => currentState.bodyparts[dep]);
+                // Toggle switch
+                const toggleContainer = document.createElement('div');
+                toggleContainer.className = 'toggle-container';
                 
-                // Create the filename pattern
-                let baseFilename = `${item}_${variant}`;
-                deps.forEach((dep, index) => {
-                    baseFilename += `_${depValues[index]}`;
+                const toggleLabel = document.createElement('span');
+                toggleLabel.textContent = formatLabel(item);
+                
+                const toggleSwitch = document.createElement('label');
+                toggleSwitch.className = 'toggle-switch';
+                
+                const toggleInput = document.createElement('input');
+                toggleInput.type = 'checkbox';
+                toggleInput.checked = currentState.clothing[item].active;
+                toggleInput.addEventListener('change', (e) => {
+                    currentState.clothing[item].active = e.target.checked;
+                    renderCharacter();
                 });
                 
-                // Find outline part (without _color suffix)
-                const outlinePart = characterData.find(part => part.filename === baseFilename);
-                if (outlinePart) {
-                    partsToRender.push(outlinePart);
+                const slider = document.createElement('span');
+                slider.className = 'slider';
+                
+                toggleSwitch.appendChild(toggleInput);
+                toggleSwitch.appendChild(slider);
+                toggleContainer.appendChild(toggleSwitch);
+                toggleContainer.appendChild(toggleLabel);
+                controlGroup.appendChild(toggleContainer);
+                
+                // Variant select
+                const select = document.createElement('select');
+                select.id = `${item}-select`;
+                
+                for (let i = 1; i <= maxVariation; i++) {
+                    const option = document.createElement('option');
+                    const varNum = i.toString().padStart(2, '0');
+                    option.value = varNum;
+                    option.textContent = `Style ${i}`;
+                    select.appendChild(option);
                 }
                 
-                // Find color part (with _color suffix)
-                const colorPart = characterData.find(part => part.filename === baseFilename + '_color');
-                if (colorPart) {
-                    partsToRender.push(colorPart);
-                }
+                select.addEventListener('change', (e) => {
+                    currentState.clothing[item].variant = e.target.value;
+                    renderCharacter();
+                });
+                
+                controlGroup.appendChild(select);
+                
+                // Color picker (if applicable)
+                const colorPickerContainer = document.createElement('div');
+                colorPickerContainer.className = 'color-picker-container';
+                
+                const colorLabel = document.createElement('span');
+                colorLabel.className = 'color-picker-label';
+                colorLabel.textContent = 'Color:';
+                
+                const colorPicker = document.createElement('input');
+                colorPicker.type = 'color';
+                colorPicker.className = 'color-picker';
+                colorPicker.value = currentState.clothing[item].color;
+                colorPicker.addEventListener('input', (e) => {
+                    currentState.clothing[item].color = e.target.value;
+                    renderCharacter();
+                });
+                
+                colorPickerContainer.appendChild(colorLabel);
+                colorPickerContainer.appendChild(colorPicker);
+                controlGroup.appendChild(colorPickerContainer);
+                
+                container.appendChild(controlGroup);
             }
+        }
+    
+        // Render character based on current state - simplified and optimized
+        async function renderCharacter() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Sort by layer value - ensure numeric sorting
-            partsToRender.sort((a, b) => {
-                const layerA = parseInt(a.layer) || 0;
-                const layerB = parseInt(b.layer) || 0;
-                return layerA - layerB;
-            });
-            
-            // 3. Load and draw images in the correct layer order
-            for (const part of partsToRender) {
-                const filename = part.filename;
-                const imagePath = `images/${filename}.png`;
+            try {
+                // Collect all parts to render in the correct order
+                const partsToRender = [];
                 
-                // Load image if not already loaded
-                if (!loadedImages[imagePath]) {
-                    try {
-                        loadedImages[imagePath] = await loadImage(imagePath);
-                    } catch (error) {
-                        console.error(`Failed to load image: ${imagePath}`, error);
-                        continue;
+                // 1. Add body parts
+                for (const part in currentState.bodyparts) {
+                    const variation = currentState.bodyparts[part];
+                    const filename = `${part}_${variation}`;
+                    
+                    // Find matching part in character data
+                    const bodyPart = characterData.find(item => item.filename === filename);
+                    if (bodyPart) {
+                        partsToRender.push(bodyPart);
                     }
                 }
                 
-                const img = loadedImages[imagePath];
-                
-                // Check if this is a color part
-                if (part.color === 'TRUE') {
-                    // Get the clothing type from the filename
-                    const clothingType = filename.split('_')[0];
-                    const selectedColor = currentState.clothing[clothingType].color;
+                // 2. Add clothing items
+                for (const item in currentState.clothing) {
+                    if (!currentState.clothing[item].active) continue;
                     
-                    // Draw with color
-                    drawImageWithColor(img, selectedColor);
+                    const variant = currentState.clothing[item].variant;
+                    const deps = dependencies[item];
+                    const depValues = deps.map(dep => currentState.bodyparts[dep]);
+                    
+                    // Create the filename pattern
+                    let baseFilename = `${item}_${variant}`;
+                    deps.forEach((dep, index) => {
+                        baseFilename += `_${depValues[index]}`;
+                    });
+                    
+                    // Find outline part (without _color suffix)
+                    const outlinePart = characterData.find(part => part.filename === baseFilename);
+                    if (outlinePart) {
+                        partsToRender.push(outlinePart);
+                    }
+                    
+                    // Find color part (with _color suffix)
+                    const colorPart = characterData.find(part => part.filename === baseFilename + '_color');
+                    if (colorPart) {
+                        partsToRender.push(colorPart);
+                    }
+                }
+                
+                // Sort by layer value - ensure numeric sorting
+                partsToRender.sort((a, b) => {
+                    const layerA = parseInt(a.layer) || 0;
+                    const layerB = parseInt(b.layer) || 0;
+                    return layerA - layerB;
+                });
+                
+                // 3. Load and draw images in the correct layer order
+                for (const part of partsToRender) {
+                    const filename = part.filename;
+                    const imagePath = `images/${filename}.png`;
+                    
+                    // Load image if not already loaded
+                    if (!loadedImages[imagePath]) {
+                        try {
+                            loadedImages[imagePath] = await loadImage(imagePath);
+                        } catch (error) {
+                            console.error(`Failed to load image: ${imagePath}`, error);
+                            continue;
+                        }
+                    }
+                    
+                    const img = loadedImages[imagePath];
+                    
+                    // Check if this is a color part
+                    if (part.color === 'TRUE') {
+                        // Get the clothing type from the filename
+                        const clothingType = filename.split('_')[0];
+                        const selectedColor = currentState.clothing[clothingType].color;
+                        
+                        // Draw with color
+                        drawImageWithColor(img, selectedColor);
+                    } else {
+                        // Draw normally
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    }
+                }
+            } catch (error) {
+                console.error('Error rendering character:', error);
+            }
+        }
+    
+        // Improved color tinting function
+        function drawImageWithColor(img, color) {
+            try {
+                // Create a temporary canvas for manipulation
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                // Draw the original image to the temp canvas
+                tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+                
+                // Get the image data
+                const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+                const data = imageData.data;
+                
+                // Convert hex color to RGB
+                const r = parseInt(color.slice(1, 3), 16);
+                const g = parseInt(color.slice(3, 5), 16);
+                const b = parseInt(color.slice(5, 7), 16);
+                
+                // Apply the color tint
+                for (let i = 0; i < data.length; i += 4) {
+                    // Skip if pixel is transparent
+                    if (data[i + 3] === 0) continue;
+                    
+                    // Calculate grayscale value - use average of RGB for better accuracy
+                    const grayValue = (data[i] + data[i + 1] + data[i + 2]) / (3 * 255);
+                    
+                    // Apply the tint by multiplying the color
+                    data[i] = Math.round(r * grayValue);       // Red
+                    data[i + 1] = Math.round(g * grayValue);   // Green
+                    data[i + 2] = Math.round(b * grayValue);   // Blue
+                    // Keep original alpha
+                }
+                
+                // Put the modified image data back on the temp canvas
+                tempCtx.putImageData(imageData, 0, 0);
+                
+                // Draw the tinted image to the main canvas
+                ctx.drawImage(tempCanvas, 0, 0);
+            } catch (error) {
+                console.error('Error applying color tint:', error);
+            }
+        }
+    
+        // Helper function to load an image
+        function loadImage(src) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+                img.src = src;
+                
+                // Set a timeout in case the image load hangs
+                const timeout = setTimeout(() => {
+                    reject(new Error(`Image load timeout: ${src}`));
+                }, 5000);
+                
+                img.onload = () => {
+                    clearTimeout(timeout);
+                    resolve(img);
+                };
+            });
+        }
+    
+        // Setup canvas scaling for responsive design
+        function setupCanvasScaling() {
+            const canvasWrapper = document.querySelector('.canvas-wrapper');
+            const canvas = document.getElementById('character-canvas');
+            
+            // Function to resize canvas
+            function resizeCanvas() {
+                const wrapperHeight = canvasWrapper.clientHeight;
+                const wrapperWidth = canvasWrapper.clientWidth;
+                
+                // Original aspect ratio 9:16
+                const aspectRatio = 2160 / 3840;
+                
+                let displayWidth, displayHeight;
+                
+                // If wrapper is taller than canvas aspect ratio
+                if (wrapperWidth / wrapperHeight > aspectRatio) {
+                    // Constrain by height
+                    displayHeight = wrapperHeight;
+                    displayWidth = wrapperHeight * aspectRatio;
                 } else {
-                    // Draw normally
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    // Constrain by width
+                    displayWidth = wrapperWidth;
+                    displayHeight = wrapperWidth / aspectRatio;
                 }
-            }
-        } catch (error) {
-            console.error('Error rendering character:', error);
-        }
-    }
-
-    // Improved color tinting function
-    function drawImageWithColor(img, color) {
-        try {
-            // Create a temporary canvas for manipulation
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = canvas.width;
-            tempCanvas.height = canvas.height;
-            const tempCtx = tempCanvas.getContext('2d');
-            
-            // Draw the original image to the temp canvas
-            tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
-            
-            // Get the image data
-            const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-            const data = imageData.data;
-            
-            // Convert hex color to RGB
-            const r = parseInt(color.slice(1, 3), 16);
-            const g = parseInt(color.slice(3, 5), 16);
-            const b = parseInt(color.slice(5, 7), 16);
-            
-            // Apply the color tint
-            for (let i = 0; i < data.length; i += 4) {
-                // Skip if pixel is transparent
-                if (data[i + 3] === 0) continue;
                 
-                // Calculate grayscale value - use average of RGB for better accuracy
-                const grayValue = (data[i] + data[i + 1] + data[i + 2]) / (3 * 255);
+                // Apply scale transformation to canvas
+                canvas.style.width = `${displayWidth}px`;
+                canvas.style.height = `${displayHeight}px`;
+            }
+            
+            // Initial resize
+            resizeCanvas();
+            
+            // Resize on window change
+            window.addEventListener('resize', resizeCanvas);
+        }
+    
+        // Download the character as PNG
+        function downloadCharacter() {
+            try {
+                const link = document.createElement('a');
+                link.download = 'my-character.png';
                 
-                // Apply the tint by multiplying the color
-                data[i] = Math.round(r * grayValue);       // Red
-                data[i + 1] = Math.round(g * grayValue);   // Green
-                data[i + 2] = Math.round(b * grayValue);   // Blue
-                // Keep original alpha
+                // Use a timeout to ensure the latest render is captured
+                setTimeout(() => {
+                    try {
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                    } catch (e) {
+                        console.error('Error creating download link:', e);
+                        alert('Failed to download image: ' + e.message);
+                    }
+                }, 100);
+            } catch (error) {
+                console.error('Error downloading character:', error);
+                alert('Failed to download: ' + error.message);
             }
-            
-            // Put the modified image data back on the temp canvas
-            tempCtx.putImageData(imageData, 0, 0);
-            
-            // Draw the tinted image to the main canvas
-            ctx.drawImage(tempCanvas, 0, 0);
-        } catch (error) {
-            console.error('Error applying color tint:', error);
         }
-    }
-
-    // Helper function to load an image
-    function loadImage(src) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => resolve(img);
-            img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
-            img.src = src;
+    
+        // Helper function to format labels
+        function formatLabel(str) {
+            // Convert larm to Left Arm, rleg to Right Leg, etc.
+            if (str === 'larm') return 'Left Arm';
+            if (str === 'rarm') return 'Right Arm';
+            if (str === 'lleg') return 'Left Leg';
+            if (str === 'rleg') return 'Right Leg';
+            if (str === 'lshoe') return 'Left Shoe';
+            if (str === 'rshoe') return 'Right Shoe';
             
-            // Set a timeout in case the image load hangs
-            const timeout = setTimeout(() => {
-                reject(new Error(`Image load timeout: ${src}`));
-            }, 5000);
-            
-            img.onload = () => {
-                clearTimeout(timeout);
-                resolve(img);
-            };
-        });
-    }
-
-    // Setup canvas scaling for responsive design
-    function setupCanvasScaling() {
-        const canvasWrapper = document.querySelector('.canvas-wrapper');
-        const canvas = document.getElementById('character-canvas');
-        
-        // Function to resize canvas
-        function resizeCanvas() {
-            const wrapperHeight = canvasWrapper.clientHeight;
-            const wrapperWidth = canvasWrapper.clientWidth;
-            
-            // Original aspect ratio 9:16
-            const aspectRatio = 2160 / 3840;
-            
-            let displayWidth, displayHeight;
-            
-            // If wrapper is taller than canvas aspect ratio
-            if (wrapperWidth / wrapperHeight > aspectRatio) {
-                // Constrain by height
-                displayHeight = wrapperHeight;
-                displayWidth = wrapperHeight * aspectRatio;
-            } else {
-                // Constrain by width
-                displayWidth = wrapperWidth;
-                displayHeight = wrapperWidth / aspectRatio;
-            }
-            
-            // Apply scale transformation to canvas
-            canvas.style.width = `${displayWidth}px`;
-            canvas.style.height = `${displayHeight}px`;
+            // Capitalize first letter
+            return str.charAt(0).toUpperCase() + str.slice(1);
         }
-        
-        // Initial resize
-        resizeCanvas();
-        
-        // Resize on window change
-        window.addEventListener('resize', resizeCanvas);
-    }
-
-    // Download the character as PNG
-    function downloadCharacter() {
-        try {
-            const link = document.createElement('a');
-            link.download = 'my-character.png';
-            
-            // Use a timeout to ensure the latest render is captured
-            setTimeout(() => {
-                try {
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                } catch (e) {
-                    console.error('Error creating download link:', e);
-                    alert('Failed to download image: ' + e.message);
-                }
-            }, 100);
-        } catch (error) {
-            console.error('Error downloading character:', error);
-            alert('Failed to download: ' + error.message);
-        }
-    }
-
-    // Helper function to format labels
-    function formatLabel(str) {
-        // Convert larm to Left Arm, rleg to Right Leg, etc.
-        if (str === 'larm') return 'Left Arm';
-        if (str === 'rarm') return 'Right Arm';
-        if (str === 'lleg') return 'Left Leg';
-        if (str === 'rleg') return 'Right Leg';
-        if (str === 'lshoe') return 'Left Shoe';
-        if (str === 'rshoe') return 'Right Shoe';
-        
-        // Capitalize first letter
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
     </script>
 </body>
 </html>
