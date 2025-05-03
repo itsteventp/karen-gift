@@ -259,8 +259,8 @@ pants_01_04_03.png,clothing,pants,1,"lleg,rleg",FALSE,1
 pants_01_04_03_color.png,clothing,pants,1,"lleg,rleg",TRUE,2
 pants_01_04_04.png,clothing,pants,1,"lleg,rleg",FALSE,1
 pants_01_04_04_color.png,clothing,pants,1,"lleg,rleg",TRUE,2
-pants_02_01_01.png,clothing,pants,2,"lleg,rleg",FALSE,1
-pants_02_01_01_color.png,clothing,pants,2,"lleg,rleg",TRUE,2
+pants_02_01_01,clothing,pants,2,"lleg,rleg",FALSE,8
+pants_02_01_01_color,clothing,pants,2,"lleg,rleg",TRUE,7
 pants_02_01_02.png,clothing,pants,2,"lleg,rleg",FALSE,1
 pants_02_01_02_color.png,clothing,pants,2,"lleg,rleg",TRUE,2
 pants_02_01_03.png,clothing,pants,2,"lleg,rleg",FALSE,1
