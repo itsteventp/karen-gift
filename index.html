@@ -24,11 +24,25 @@
             position: relative;
             overflow: auto;
             max-height: 100vh;
+            padding: 20px;
         }
 
+        .canvas-wrapper {
+            position: relative;
+            height: calc(100vh - 40px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+   
         #character-canvas {
             background-color: white;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+            width: auto;
+            height: auto;
         }
 
         .controls-panel {
@@ -51,6 +65,22 @@
             background-color: #f9f9f9;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 1200px) {
+        body {
+            flex-direction: column;
+        }
+        
+        .canvas-container {
+            height: 60vh;
+            max-height: 60vh;
+        }
+        
+        .controls-panel {
+            width: 100%;
+            height: 40vh;
+            overflow-y: auto;
         }
 
         .control-group {
@@ -214,7 +244,9 @@
     </div>
 
     <div class="canvas-container">
-        <canvas id="character-canvas" width="2160" height="3840"></canvas>
+        <div class="canvas-wrapper">
+            <canvas id="character-canvas" width="2160" height="3840"></canvas>
+        </div>
         <button class="download-btn" id="download-btn">Download Character</button>
     </div>
 
@@ -315,9 +347,10 @@
                 
                 // Hide loading screen
                 document.getElementById('loading-screen').style.display = 'none';
+                setupCanvasScaling();
             } catch (error) {
                 console.error('Initialization error:', error);
-                alert('Failed to initialize the app. Please check the console for details.');
+                errorMsg.textContent = 'Failed to initialize: ' + error.message;
             }
         };
 
@@ -620,6 +653,45 @@
             
             // Capitalize first letter
             return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+        
+        function setupCanvasScaling() {
+            const canvasWrapper = document.querySelector('.canvas-wrapper');
+            const canvas = document.getElementById('character-canvas');
+    
+            // Function to resize canvas
+            function resizeCanvas() {
+                const wrapperHeight = canvasWrapper.clientHeight;
+                const wrapperWidth = canvasWrapper.clientWidth;
+        
+                // Original aspect ratio 9:16
+                const aspectRatio = 2160 / 3840;
+        
+                let displayWidth, displayHeight;
+        
+                // If wrapper is taller than canvas aspect ratio
+                if (wrapperWidth / wrapperHeight > aspectRatio) {
+                    // Constrain by height
+                    displayHeight = wrapperHeight;
+                    displayWidth = wrapperHeight * aspectRatio;
+                } else {
+                    // Constrain by width
+                    displayWidth = wrapperWidth;
+                    displayHeight = wrapperWidth / aspectRatio;
+                }
+        
+                // Apply scale transformation to canvas
+                canvas.style.width = `${displayWidth}px`;
+                canvas.style.height = `${displayHeight}px`;
+        
+                console.log(`Canvas scaled to: ${displayWidth}px × ${displayHeight}px`);
+            }
+    
+            // Initial resize
+            resizeCanvas();
+    
+            // Resize on window change
+            window.addEventListener('resize', resizeCanvas);
         }
     </script>
 </body>
