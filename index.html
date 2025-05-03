@@ -579,108 +579,107 @@
         }
     
         // Render character based on current state - with strict layer ordering
-async function renderCharacter() {
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    try {
-        // Collect all parts to render
-        const partsToRender = [];
-        
-        // 1. Add body parts
-        for (const part in currentState.bodyparts) {
-            const variation = currentState.bodyparts[part];
-            const filename = `${part}_${variation}`;
+        async function renderCharacter() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Find matching part in character data
-            const bodyPart = characterData.find(item => item.filename === filename);
-            if (bodyPart) {
-                partsToRender.push({
-                    ...bodyPart,
-                    type: 'bodypart',
-                    imageFilename: filename,
-                    layerValue: parseInt(bodyPart.layer) || 0
-                });
-            }
-        }
-        
-        // 2. Add clothing items
-        for (const item in currentState.clothing) {
-            if (!currentState.clothing[item].active) continue;
-            
-            const variant = currentState.clothing[item].variant;
-            const deps = dependencies[item];
-            const depValues = deps.map(dep => currentState.bodyparts[dep]);
-            
-            // Create the filename pattern
-            let baseFilename = `${item}_${variant}`;
-            deps.forEach((dep, index) => {
-                baseFilename += `_${depValues[index]}`;
-            });
-            
-            // Find outline part (without _color suffix)
-            const outlinePart = characterData.find(part => part.filename === baseFilename);
-            if (outlinePart) {
-                partsToRender.push({
-                    ...outlinePart,
-                    type: 'clothing_outline',
-                    imageFilename: baseFilename,
-                    layerValue: parseInt(outlinePart.layer) || 0
-                });
-            }
-            
-            // Find color part (with _color suffix)
-            const colorFilename = baseFilename + '_color';
-            const colorPart = characterData.find(part => part.filename === colorFilename);
-            if (colorPart) {
-                partsToRender.push({
-                    ...colorPart,
-                    type: 'clothing_color',
-                    imageFilename: colorFilename,
-                    layerValue: parseInt(colorPart.layer) || 0,
-                    colorValue: currentState.clothing[item].color
-                });
-            }
-        }
-        
-        // CRITICAL: Sort strictly by layer value - making sure to use the parsed numeric values
-        partsToRender.sort((a, b) => a.layerValue - b.layerValue);
-        
-        // Log the sort order to debug issues
-        console.log("Drawing parts in this layer order:", 
-            partsToRender.map(p => `${p.imageFilename} (layer: ${p.layerValue})`));
-        
-        // 3. Load and draw images in the correct layer order
-        for (const part of partsToRender) {
-            const imagePath = `images/${part.imageFilename}.png`;
-            
-            // Load image if not already loaded
-            if (!loadedImages[imagePath]) {
-                try {
-                    loadedImages[imagePath] = await loadImage(imagePath);
-                } catch (error) {
-                    console.error(`Failed to load image: ${imagePath}`, error);
-                    continue;
-                }
-            }
-            
-            const img = loadedImages[imagePath];
-            
-            // Draw based on part type
-            if (part.type === 'clothing_color') {
-                // Apply color tint to this layer
-                drawImageWithColor(img, part.colorValue);
-            } else {
-                // Draw normal image
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            }
-        }
-    } catch (error) {
-        console.error('Error rendering character:', error);
-    }
-}
+            try {
+                // Collect all parts to render
+                const partsToRender = [];
                 
-    
+                // 1. Add body parts
+                for (const part in currentState.bodyparts) {
+                    const variation = currentState.bodyparts[part];
+                    const filename = `${part}_${variation}`;
+                    
+                    // Find matching part in character data
+                    const bodyPart = characterData.find(item => item.filename === filename);
+                    if (bodyPart) {
+                        partsToRender.push({
+                            ...bodyPart,
+                            type: 'bodypart',
+                            imageFilename: filename,
+                            layerValue: parseInt(bodyPart.layer) || 0
+                        });
+                    }
+                }
+                
+                // 2. Add clothing items
+                for (const item in currentState.clothing) {
+                    if (!currentState.clothing[item].active) continue;
+                    
+                    const variant = currentState.clothing[item].variant;
+                    const deps = dependencies[item];
+                    const depValues = deps.map(dep => currentState.bodyparts[dep]);
+                    
+                    // Create the filename pattern
+                    let baseFilename = `${item}_${variant}`;
+                    deps.forEach((dep, index) => {
+                        baseFilename += `_${depValues[index]}`;
+                    });
+                    
+                    // Find outline part (without _color suffix)
+                    const outlinePart = characterData.find(part => part.filename === baseFilename);
+                    if (outlinePart) {
+                        partsToRender.push({
+                            ...outlinePart,
+                            type: 'clothing_outline',
+                            imageFilename: baseFilename,
+                            layerValue: parseInt(outlinePart.layer) || 0
+                        });
+                    }
+                    
+                    // Find color part (with _color suffix)
+                    const colorFilename = baseFilename + '_color';
+                    const colorPart = characterData.find(part => part.filename === colorFilename);
+                    if (colorPart) {
+                        partsToRender.push({
+                            ...colorPart,
+                            type: 'clothing_color',
+                            imageFilename: colorFilename,
+                            layerValue: parseInt(colorPart.layer) || 0,
+                            colorValue: currentState.clothing[item].color
+                        });
+                    }
+                }
+                
+                // CRITICAL: Sort strictly by layer value - making sure to use the parsed numeric values
+                partsToRender.sort((a, b) => a.layerValue - b.layerValue);
+                
+                // Log the sort order to debug issues
+                console.log("Drawing parts in this layer order:", 
+                    partsToRender.map(p => `${p.imageFilename} (layer: ${p.layerValue})`));
+                
+                // 3. Load and draw images in the correct layer order
+                for (const part of partsToRender) {
+                    const imagePath = `images/${part.imageFilename}.png`;
+                    
+                    // Load image if not already loaded
+                    if (!loadedImages[imagePath]) {
+                        try {
+                            loadedImages[imagePath] = await loadImage(imagePath);
+                        } catch (error) {
+                            console.error(`Failed to load image: ${imagePath}`, error);
+                            continue;
+                        }
+                    }
+                    
+                    const img = loadedImages[imagePath];
+                    
+                    // Draw based on part type
+                    if (part.type === 'clothing_color') {
+                        // Apply color tint to this layer
+                        drawImageWithColor(img, part.colorValue);
+                    } else {
+                        // Draw normal image
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    }
+                }
+            } catch (error) {
+                console.error('Error rendering character:', error);
+            }
+        }
+         
         // Improved color tinting function
         function drawImageWithColor(img, color) {
             try {
