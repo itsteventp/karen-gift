@@ -531,186 +531,289 @@ input:checked + .slider:before {
 
     <script>
     // Global variables
-    let characterData = [];
-    let loadedImages = {};
-    const canvas = document.getElementById('character-canvas');
-    const ctx = canvas.getContext('2d');
-    const loadingMessage = document.getElementById('loading-message');
-    const errorMsg = document.getElementById('error-msg');
+let characterData = [];
+let loadedImages = {};
+const canvas = document.getElementById('character-canvas');
+const ctx = canvas.getContext('2d');
+const loadingMessage = document.getElementById('loading-message');
+const errorMsg = document.getElementById('error-msg');
+
+// Password configuration
+const passwords = {
+    main: "karen", // First password to access the site
+    bodyparts: "love", // Second password to unlock body parts
+    clothing: "you"  // Third password to unlock clothing
+};
+
+// Lock states
+let locks = {
+    main: true,        // Site is locked initially
+    bodyparts: true,   // Body parts are locked initially
+    clothing: true     // Clothing is locked initially
+};
+
+// Current state
+let currentState = {
+    bodyparts: {
+        torso: '01',
+        head: '01',
+        larm: '01',
+        rarm: '01',
+        lleg: '01',
+        rleg: '01'
+    },
+    clothing: {
+        shirt: { active: true, variant: '01', color: '#000000' },
+        hair: { active: true, variant: '01', color: '#000000' },
+        face: { active: true, variant: '01', color: '#000000' },
+        jacket: { active: false, variant: '01', color: '#000000' },
+        pants: { active: true, variant: '01', color: '#000000' },
+        lshoe: { active: true, variant: '01', color: '#000000' },
+        rshoe: { active: true, variant: '01', color: '#000000' }
+    }
+};
+
+// Dependencies mapping
+const dependencies = {
+    shirt: ['larm', 'rarm'],
+    jacket: ['larm', 'rarm'],
+    pants: ['lleg', 'rleg'],
+    hair: ['head'],
+    face: ['head'],
+    lshoe: ['lleg'],
+    rshoe: ['rleg']
+};
+
+// Variations count
+const variations = {
+    bodyparts: {
+        torso: 1,
+        head: 3,
+        larm: 4,
+        rarm: 4,
+        lleg: 4,
+        rleg: 4
+    },
+    clothing: {
+        shirt: 3,
+        hair: 2,
+        face: 6,
+        jacket: 2,
+        pants: 3,
+        lshoe: 3,
+        rshoe: 3
+    }
+};
+
+// Initialize the app
+window.onload = function() {
+    // Set up password event handlers
+    setupPasswordHandlers();
     
-    // Password configuration
-    const passwords = {
-        main: "karen", // First password to access the site
-        bodyparts: "love", // Second password to unlock body parts
-        clothing: "you"  // Third password to unlock clothing
-    };
+    // Start with main password screen, hide loading screen
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('main-password-screen').style.display = 'flex';
+    document.getElementById('main-password-input').focus();
+};
 
-    // Lock states
-    let locks = {
-        main: true,        // Site is locked initially
-        bodyparts: true,   // Body parts are locked initially
-        clothing: true     // Clothing is locked initially
-    };
-
-    // Current state
-    let currentState = {
-        bodyparts: {
-            torso: '01',
-            head: '01',
-            larm: '01',
-            rarm: '01',
-            lleg: '01',
-            rleg: '01'
-        },
-        clothing: {
-            shirt: { active: true, variant: '01', color: '#000000' },
-            hair: { active: true, variant: '01', color: '#000000' },
-            face: { active: true, variant: '01', color: '#000000' },
-            jacket: { active: false, variant: '01', color: '#000000' },
-            pants: { active: true, variant: '01', color: '#000000' },
-            lshoe: { active: true, variant: '01', color: '#000000' },
-            rshoe: { active: true, variant: '01', color: '#000000' }
-        }
-    };
-
-    // Dependencies mapping
-    const dependencies = {
-        shirt: ['larm', 'rarm'],
-        jacket: ['larm', 'rarm'],
-        pants: ['lleg', 'rleg'],
-        hair: ['head'],
-        face: ['head'],
-        lshoe: ['lleg'],
-        rshoe: ['rleg']
-    };
-
-    // Variations count
-    const variations = {
-        bodyparts: {
-            torso: 1,
-            head: 3,
-            larm: 4,
-            rarm: 4,
-            lleg: 4,
-            rleg: 4
-        },
-        clothing: {
-            shirt: 3,
-            hair: 2,
-            face: 6,
-            jacket: 2,
-            pants: 3,
-            lshoe: 3,
-            rshoe: 3
-        }
-    };
-
-    // Initialize the app
-    window.onload = function() {
-        // Set up password event handlers
-        setupPasswordHandlers();
-        
-        // Start with main password screen, hide loading screen
-        document.getElementById('loading-screen').style.display = 'none';
-        document.getElementById('main-password-screen').style.display = 'flex';
-        document.getElementById('main-password-input').focus();
-    };
-
-    // Set up password handlers
-    function setupPasswordHandlers() {
-        // Main password handlers
-        document.getElementById('main-password-submit').addEventListener('click', function() {
+// Set up password handlers
+function setupPasswordHandlers() {
+    // Main password handlers
+    document.getElementById('main-password-submit').addEventListener('click', function() {
+        validateMainPassword();
+    });
+    
+    document.getElementById('main-password-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
             validateMainPassword();
-        });
-        
-        document.getElementById('main-password-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                validateMainPassword();
-            }
-        });
-        
-        // Bodypart password handlers
-        document.getElementById('bodypart-password-submit').addEventListener('click', function() {
-            validateBodypartPassword();
-        });
-        
-        document.getElementById('bodypart-password-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                validateBodypartPassword();
-            }
-        });
-        
-        // Clothing password handlers
-        document.getElementById('clothing-password-submit').addEventListener('click', function() {
-            validateClothingPassword();
-        });
-        
-        document.getElementById('clothing-password-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                validateClothingPassword();
-            }
-        });
-    }
-
-    // Validate main password
-    function validateMainPassword() {
-        const input = document.getElementById('main-password-input');
-        const error = document.getElementById('main-password-error');
-        
-        if (input.value === passwords.main) {
-            // Correct password
-            locks.main = false;
-            document.getElementById('main-password-screen').style.display = 'none';
-            
-            // Show loading screen and start initialization
-            document.getElementById('loading-screen').style.display = 'flex';
-            initApp();
-        } else {
-            // Wrong password
-            error.textContent = 'Incorrect password. Please try again.';
-            input.value = '';
-            input.focus();
-            
-            // Shake effect
-            const container = document.querySelector('#main-password-screen .password-container');
-            container.style.animation = 'none';
-            setTimeout(function() {
-                container.style.animation = 'shake 0.5s';
-            }, 10);
         }
-    }
-
+    });
     
-
-    // Initialize the main application
-    async function initApp() {
-        try {
-            loadingMessage.textContent = "Loading character data...";
-            await loadCharacterData();
-            
-            loadingMessage.textContent = "Setting up controls...";
-            setupBodypartControls();
-            setupClothingControls();
-            addSectionLocks();
-            
-            // Setup download button
-            document.getElementById('download-btn').addEventListener('click', downloadCharacter);
-            
-            loadingMessage.textContent = "Rendering character...";
-            await renderCharacter();
-            
-            // Setup canvas scaling
-            setupCanvasScaling();
-            
-            // Hide loading screen
-            document.getElementById('loading-screen').style.display = 'none';
-        } catch (error) {
-            console.error('Initialization error:', error);
-            errorMsg.textContent = 'Failed to initialize: ' + error.message;
+    // Bodypart password handlers
+    document.getElementById('bodypart-password-submit').addEventListener('click', function() {
+        validateBodypartPassword();
+    });
+    
+    document.getElementById('bodypart-password-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            validateBodypartPassword();
         }
-    }
+    });
+    
+    // Clothing password handlers
+    document.getElementById('clothing-password-submit').addEventListener('click', function() {
+        validateClothingPassword();
+    });
+    
+    document.getElementById('clothing-password-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            validateClothingPassword();
+        }
+    });
+}
 
-    function addSectionLocks() {
+// Validate main password
+function validateMainPassword() {
+    const input = document.getElementById('main-password-input');
+    const error = document.getElementById('main-password-error');
+    
+    if (input.value === passwords.main) {
+        // Correct password
+        locks.main = false;
+        document.getElementById('main-password-screen').style.display = 'none';
+        
+        // Show loading screen and start initialization
+        document.getElementById('loading-screen').style.display = 'flex';
+        initApp();
+    } else {
+        // Wrong password
+        error.textContent = 'Incorrect password. Please try again.';
+        input.value = '';
+        input.focus();
+        
+        // Shake effect
+        const container = document.querySelector('#main-password-screen .password-container');
+        container.style.animation = 'none';
+        setTimeout(function() {
+            container.style.animation = 'shake 0.5s';
+        }, 10);
+    }
+}
+
+// Validate bodypart password
+function validateBodypartPassword() {
+    const input = document.getElementById('bodypart-password-input');
+    const error = document.getElementById('bodypart-password-error');
+    
+    console.log('Checking bodypart password:', input.value, 'Expected:', passwords.bodyparts);
+    
+    if (input.value === passwords.bodyparts) {
+        // Correct password
+        locks.bodyparts = false;
+        document.getElementById('bodypart-password-screen').style.display = 'none';
+        
+        // Update UI - use more specific selector
+        const section = document.querySelector('.controls-panel .section:nth-of-type(1)');
+        if (section) {
+            section.classList.remove('locked');
+            
+            // Find and remove the unlock button
+            const unlockButton = section.querySelector('.unlock-button');
+            if (unlockButton) {
+                unlockButton.remove(); // Completely remove the button
+            }
+            
+            // Remove the click handler from the heading
+            const heading = section.querySelector('h2');
+            if (heading) {
+                heading.style.cursor = 'default';
+                heading.replaceWith(heading.cloneNode(true)); // Remove event listeners
+            }
+            
+            console.log('Body parts unlocked successfully');
+        } else {
+            console.error('Could not find body parts section to unlock');
+        }
+        
+        // Enable controls
+        enableBodypartControls();
+    } else {
+        // Wrong password
+        error.textContent = 'Incorrect password. Please try again.';
+        input.value = '';
+        input.focus();
+        
+        // Shake effect
+        const container = document.querySelector('#bodypart-password-screen .password-container');
+        container.style.animation = 'none';
+        setTimeout(function() {
+            container.style.animation = 'shake 0.5s';
+        }, 10);
+    }
+}
+
+// Validate clothing password
+function validateClothingPassword() {
+    const input = document.getElementById('clothing-password-input');
+    const error = document.getElementById('clothing-password-error');
+    
+    console.log('Checking clothing password:', input.value, 'Expected:', passwords.clothing);
+    
+    if (input.value === passwords.clothing) {
+        // Correct password
+        locks.clothing = false;
+        document.getElementById('clothing-password-screen').style.display = 'none';
+        
+        // Update UI - use more specific selector
+        const section = document.querySelector('.controls-panel .section:nth-of-type(2)');
+        if (section) {
+            section.classList.remove('locked');
+            
+            // Find and remove the unlock button
+            const unlockButton = section.querySelector('.unlock-button');
+            if (unlockButton) {
+                unlockButton.remove(); // Completely remove the button
+            }
+            
+            // Remove the click handler from the heading
+            const heading = section.querySelector('h2');
+            if (heading) {
+                heading.style.cursor = 'default';
+                heading.replaceWith(heading.cloneNode(true)); // Remove event listeners
+            }
+            
+            console.log('Clothing unlocked successfully');
+        } else {
+            console.error('Could not find clothing section to unlock');
+        }
+        
+        // Enable controls
+        enableClothingControls();
+    } else {
+        // Wrong password
+        error.textContent = 'Incorrect password. Please try again.';
+        input.value = '';
+        input.focus();
+        
+        // Shake effect
+        const container = document.querySelector('#clothing-password-screen .password-container');
+        container.style.animation = 'none';
+        setTimeout(function() {
+            container.style.animation = 'shake 0.5s';
+        }, 10);
+    }
+}
+
+// Initialize the main application
+async function initApp() {
+    try {
+        loadingMessage.textContent = "Loading character data...";
+        await loadCharacterData();
+        
+        loadingMessage.textContent = "Setting up controls...";
+        setupBodypartControls();
+        setupClothingControls();
+        addSectionLocks();
+        
+        // Setup download button
+        document.getElementById('download-btn').addEventListener('click', downloadCharacter);
+        
+        loadingMessage.textContent = "Rendering character...";
+        await renderCharacter();
+        
+        // Setup canvas scaling
+        setupCanvasScaling();
+        
+        // Hide loading screen
+        document.getElementById('loading-screen').style.display = 'none';
+    } catch (error) {
+        console.error('Initialization error:', error);
+        errorMsg.textContent = 'Failed to initialize: ' + error.message;
+    }
+}
+
+// Add locks to sections
+function addSectionLocks() {
     // Bodyparts section
     const bodypartSection = document.querySelector('.controls-panel .section:nth-of-type(1)');
     if (bodypartSection) {
@@ -737,6 +840,8 @@ input:checked + .slider:before {
         });
         
         bodypartSection.appendChild(bodypartBtn);
+    } else {
+        console.error('Bodypart section not found');
     }
     
     // Clothing section
@@ -765,10 +870,13 @@ input:checked + .slider:before {
         });
         
         clothingSection.appendChild(clothingBtn);
+    } else {
+        console.error('Clothing section not found');
     }
+}
 
-    // Enable clothing controls
-    function enableBodypartControls() {
+// Enable bodypart controls
+function enableBodypartControls() {
     const selects = document.querySelectorAll('#bodyparts-container select');
     selects.forEach(function(select) {
         select.disabled = false;
@@ -777,6 +885,7 @@ input:checked + .slider:before {
     console.log(`Enabled ${selects.length} bodypart controls`);
 }
 
+// Enable clothing controls
 function enableClothingControls() {
     const controls = document.querySelectorAll('#clothing-container select, #clothing-container input[type="checkbox"], #clothing-container input[type="color"]');
     controls.forEach(function(control) {
@@ -785,177 +894,177 @@ function enableClothingControls() {
     
     console.log(`Enabled ${controls.length} clothing controls`);
 }
-        
-        // Load character data from CSV
-    async function loadCharacterData() {
-        try {
-            const response = await fetch('character_data.csv');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const csvText = await response.text();
-            
-            // Parse CSV
-            const lines = csvText.split('\n');
-            if (lines.length <= 1) {
-                throw new Error("CSV file appears to be empty");
-            }
-            
-            const headers = lines[0].split(',').map(h => h.trim());
-            
-            // Debug log to check headers
-            console.log("CSV Headers:", headers);
-            
-            for (let i = 1; i < lines.length; i++) {
-                if (lines[i].trim() === '') continue;
-                
-                const values = lines[i].split(',');
-                const item = {};
-                
-                headers.forEach((header, index) => {
-                    item[header] = values[index]?.trim() || '';
-                });
-                
-                characterData.push(item);
-            }
-            
-            // Debug sample of loaded data
-            console.log('Character data loaded:', characterData.length, 'items');
-            console.log('Sample items:', characterData.slice(0, 3));
-        } catch (error) {
-            console.error('Error loading character data:', error);
-            throw error;
-        }
-    }
 
-    // Setup bodypart controls
-    function setupBodypartControls() {
-        const container = document.getElementById('bodyparts-container');
-        container.innerHTML = ''; // Clear existing content
+// Load character data from CSV
+async function loadCharacterData() {
+    try {
+        const response = await fetch('character_data.csv');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         
-        for (const part in variations.bodyparts) {
-            const maxVariation = variations.bodyparts[part];
+        const csvText = await response.text();
+        
+        // Parse CSV
+        const lines = csvText.split('\n');
+        if (lines.length <= 1) {
+            throw new Error("CSV file appears to be empty");
+        }
+        
+        const headers = lines[0].split(',').map(h => h.trim());
+        
+        // Debug log to check headers
+        console.log("CSV Headers:", headers);
+        
+        for (let i = 1; i < lines.length; i++) {
+            if (lines[i].trim() === '') continue;
             
-            const controlGroup = document.createElement('div');
-            controlGroup.className = 'control-group';
+            const values = lines[i].split(',');
+            const item = {};
             
-            const label = document.createElement('label');
-            label.textContent = formatLabel(part);
-            controlGroup.appendChild(label);
-            
-            const select = document.createElement('select');
-            select.id = `${part}-select`;
-            select.disabled = true; // Initially disabled
-            
-            for (let i = 1; i <= maxVariation; i++) {
-                const option = document.createElement('option');
-                const varNum = i.toString().padStart(2, '0');
-                option.value = varNum;
-                option.textContent = `Pose ${i}`;
-                select.appendChild(option);
-            }
-            
-            select.value = currentState.bodyparts[part]; // Set current value
-            
-            select.addEventListener('change', (e) => {
-                currentState.bodyparts[part] = e.target.value;
-                renderCharacter();
+            headers.forEach((header, index) => {
+                item[header] = values[index]?.trim() || '';
             });
             
-            controlGroup.appendChild(select);
-            container.appendChild(controlGroup);
+            characterData.push(item);
         }
+        
+        // Debug sample of loaded data
+        console.log('Character data loaded:', characterData.length, 'items');
+        console.log('Sample items:', characterData.slice(0, 3));
+    } catch (error) {
+        console.error('Error loading character data:', error);
+        throw error;
     }
+}
 
-    // Setup clothing controls
-    function setupClothingControls() {
-        const container = document.getElementById('clothing-container');
-        container.innerHTML = ''; // Clear existing content
+// Setup bodypart controls
+function setupBodypartControls() {
+    const container = document.getElementById('bodyparts-container');
+    container.innerHTML = ''; // Clear existing content
+    
+    for (const part in variations.bodyparts) {
+        const maxVariation = variations.bodyparts[part];
         
-        for (const item in variations.clothing) {
-            const maxVariation = variations.clothing[item];
-            
-            const controlGroup = document.createElement('div');
-            controlGroup.className = 'control-group';
-            
-            // Toggle switch
-            const toggleContainer = document.createElement('div');
-            toggleContainer.className = 'toggle-container';
-            
-            const toggleLabel = document.createElement('span');
-            toggleLabel.textContent = formatLabel(item);
-            
-            const toggleSwitch = document.createElement('label');
-            toggleSwitch.className = 'toggle-switch';
-            
-            const toggleInput = document.createElement('input');
-            toggleInput.type = 'checkbox';
-            toggleInput.disabled = true; // Initially disabled
-            toggleInput.checked = currentState.clothing[item].active;
-            
-            toggleInput.addEventListener('change', (e) => {
-                currentState.clothing[item].active = e.target.checked;
-                renderCharacter();
-            });
-            
-            const slider = document.createElement('span');
-            slider.className = 'slider';
-            
-            toggleSwitch.appendChild(toggleInput);
-            toggleSwitch.appendChild(slider);
-            toggleContainer.appendChild(toggleSwitch);
-            toggleContainer.appendChild(toggleLabel);
-            controlGroup.appendChild(toggleContainer);
-            
-            // Variant select
-            const select = document.createElement('select');
-            select.id = `${item}-select`;
-            select.disabled = true; // Initially disabled
-            
-            for (let i = 1; i <= maxVariation; i++) {
-                const option = document.createElement('option');
-                const varNum = i.toString().padStart(2, '0');
-                option.value = varNum;
-                option.textContent = `Style ${i}`;
-                select.appendChild(option);
-            }
-            
-            select.value = currentState.clothing[item].variant; // Set current value
-            
-            select.addEventListener('change', (e) => {
-                currentState.clothing[item].variant = e.target.value;
-                renderCharacter();
-            });
-            
-            controlGroup.appendChild(select);
-            
-            // Color picker
-            const colorPickerContainer = document.createElement('div');
-            colorPickerContainer.className = 'color-picker-container';
-            
-            const colorLabel = document.createElement('span');
-            colorLabel.className = 'color-picker-label';
-            colorLabel.textContent = 'Color:';
-            
-            const colorPicker = document.createElement('input');
-            colorPicker.type = 'color';
-            colorPicker.className = 'color-picker';
-            colorPicker.disabled = true; // Initially disabled
-            colorPicker.value = currentState.clothing[item].color;
-            
-            colorPicker.addEventListener('input', (e) => {
-                currentState.clothing[item].color = e.target.value;
-                renderCharacter();
-            });
-            
-            colorPickerContainer.appendChild(colorLabel);
-            colorPickerContainer.appendChild(colorPicker);
-            controlGroup.appendChild(colorPickerContainer);
-            
-            container.appendChild(controlGroup);
+        const controlGroup = document.createElement('div');
+        controlGroup.className = 'control-group';
+        
+        const label = document.createElement('label');
+        label.textContent = formatLabel(part);
+        controlGroup.appendChild(label);
+        
+        const select = document.createElement('select');
+        select.id = `${part}-select`;
+        select.disabled = true; // Initially disabled
+        
+        for (let i = 1; i <= maxVariation; i++) {
+            const option = document.createElement('option');
+            const varNum = i.toString().padStart(2, '0');
+            option.value = varNum;
+            option.textContent = `Pose ${i}`;
+            select.appendChild(option);
         }
+        
+        select.value = currentState.bodyparts[part]; // Set current value
+        
+        select.addEventListener('change', (e) => {
+            currentState.bodyparts[part] = e.target.value;
+            renderCharacter();
+        });
+        
+        controlGroup.appendChild(select);
+        container.appendChild(controlGroup);
     }
+}
+
+// Setup clothing controls
+function setupClothingControls() {
+    const container = document.getElementById('clothing-container');
+    container.innerHTML = ''; // Clear existing content
+    
+    for (const item in variations.clothing) {
+        const maxVariation = variations.clothing[item];
+        
+        const controlGroup = document.createElement('div');
+        controlGroup.className = 'control-group';
+        
+        // Toggle switch
+        const toggleContainer = document.createElement('div');
+        toggleContainer.className = 'toggle-container';
+        
+        const toggleLabel = document.createElement('span');
+        toggleLabel.textContent = formatLabel(item);
+        
+        const toggleSwitch = document.createElement('label');
+        toggleSwitch.className = 'toggle-switch';
+        
+        const toggleInput = document.createElement('input');
+        toggleInput.type = 'checkbox';
+        toggleInput.disabled = true; // Initially disabled
+        toggleInput.checked = currentState.clothing[item].active;
+        
+        toggleInput.addEventListener('change', (e) => {
+            currentState.clothing[item].active = e.target.checked;
+            renderCharacter();
+        });
+        
+        const slider = document.createElement('span');
+        slider.className = 'slider';
+        
+        toggleSwitch.appendChild(toggleInput);
+        toggleSwitch.appendChild(slider);
+        toggleContainer.appendChild(toggleSwitch);
+        toggleContainer.appendChild(toggleLabel);
+        controlGroup.appendChild(toggleContainer);
+        
+        // Variant select
+        const select = document.createElement('select');
+        select.id = `${item}-select`;
+        select.disabled = true; // Initially disabled
+        
+        for (let i = 1; i <= maxVariation; i++) {
+            const option = document.createElement('option');
+            const varNum = i.toString().padStart(2, '0');
+            option.value = varNum;
+            option.textContent = `Style ${i}`;
+            select.appendChild(option);
+        }
+        
+        select.value = currentState.clothing[item].variant; // Set current value
+        
+        select.addEventListener('change', (e) => {
+            currentState.clothing[item].variant = e.target.value;
+            renderCharacter();
+        });
+        
+        controlGroup.appendChild(select);
+        
+        // Color picker
+        const colorPickerContainer = document.createElement('div');
+        colorPickerContainer.className = 'color-picker-container';
+        
+        const colorLabel = document.createElement('span');
+        colorLabel.className = 'color-picker-label';
+        colorLabel.textContent = 'Color:';
+        
+        const colorPicker = document.createElement('input');
+        colorPicker.type = 'color';
+        colorPicker.className = 'color-picker';
+        colorPicker.disabled = true; // Initially disabled
+        colorPicker.value = currentState.clothing[item].color;
+        
+        colorPicker.addEventListener('input', (e) => {
+            currentState.clothing[item].color = e.target.value;
+            renderCharacter();
+        });
+        
+        colorPickerContainer.appendChild(colorLabel);
+        colorPickerContainer.appendChild(colorPicker);
+        controlGroup.appendChild(colorPickerContainer);
+        
+        container.appendChild(controlGroup);
+    }
+}
 
     // Render character based on current state
     async function renderCharacter() {
