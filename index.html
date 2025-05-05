@@ -422,43 +422,60 @@
             }
         };
     
-        // Load character data from CSV
-        async function loadCharacterData() {
-            try {
-                const response = await fetch('character_data.csv');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const csvText = await response.text();
-                
-                // Parse CSV
-                const lines = csvText.split('\n');
-                if (lines.length <= 1) {
-                    throw new Error("CSV file appears to be empty");
-                }
-                
-                const headers = lines[0].split(',').map(h => h.trim());
-                
-                for (let i = 1; i < lines.length; i++) {
-                    if (lines[i].trim() === '') continue;
-                    
-                    const values = lines[i].split(',');
-                    const item = {};
-                    
-                    headers.forEach((header, index) => {
-                        item[header] = values[index]?.trim() || '';
-                    });
-                    
-                    characterData.push(item);
-                }
-                
-                console.log('Character data loaded:', characterData.length, 'items');
-            } catch (error) {
-                console.error('Error loading character data:', error);
-                throw error;
-            }
+        // Load character data from CSV with better parsing
+async function loadCharacterData() {
+    try {
+        const response = await fetch('character_data.csv');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        const csvText = await response.text();
+        
+        // Parse CSV
+        const lines = csvText.split('\n');
+        if (lines.length <= 1) {
+            throw new Error("CSV file appears to be empty");
+        }
+        
+        const headers = lines[0].split(',').map(h => h.trim());
+        console.log("CSV Headers:", headers);
+        
+        // Find the index of the 'layer' column
+        const layerIndex = headers.findIndex(h => h.toLowerCase() === 'layer');
+        if (layerIndex === -1) {
+            console.warn("No 'layer' column found in CSV!");
+        } else {
+            console.log("Layer column found at index:", layerIndex);
+        }
+        
+        for (let i = 1; i < lines.length; i++) {
+            if (lines[i].trim() === '') continue;
+            
+            const values = lines[i].split(',');
+            const item = {};
+            
+            headers.forEach((header, index) => {
+                // Ensure we're getting the value, even if it's empty
+                item[header] = index < values.length ? values[index].trim() : '';
+            });
+            
+            characterData.push(item);
+        }
+        
+        // Verify some layer values after loading
+        const sampleItems = characterData.slice(0, 5);
+        console.log("Sample items after CSV load:");
+        sampleItems.forEach(item => {
+            console.log(`${item.filename}: Layer = "${item.layer}"`);
+        });
+        
+        console.log(`Character data loaded: ${characterData.length} items`);
+    } catch (error) {
+        console.error('Error loading character data:', error);
+        throw error;
+    }
+}
     
         // Setup bodypart controls
         function setupBodypartControls() {
@@ -578,107 +595,127 @@
             }
         }
     
-        // Render character based on current state - with strict layer ordering
-        async function renderCharacter() {
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Render character based on current state - with fixed layer handling
+async function renderCharacter() {
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    try {
+        // For debugging
+        console.log("Starting render with CSV data count:", characterData.length);
+        
+        // Collect all parts to render
+        const partsToRender = [];
+        
+        // 1. Add body parts
+        for (const part in currentState.bodyparts) {
+            const variation = currentState.bodyparts[part];
+            const filename = `${part}_${variation}`;
             
-            try {
-                // Collect all parts to render
-                const partsToRender = [];
+            // Find matching part in character data
+            const bodyPart = characterData.find(item => item.filename === filename);
+            if (bodyPart) {
+                // Log the layer value we found for debugging
+                console.log(`Body part ${filename} has layer value: ${bodyPart.layer}`);
                 
-                // 1. Add body parts
-                for (const part in currentState.bodyparts) {
-                    const variation = currentState.bodyparts[part];
-                    const filename = `${part}_${variation}`;
-                    
-                    // Find matching part in character data
-                    const bodyPart = characterData.find(item => item.filename === filename);
-                    if (bodyPart) {
-                        partsToRender.push({
-                            ...bodyPart,
-                            type: 'bodypart',
-                            imageFilename: filename,
-                            layerValue: parseInt(bodyPart.layer) || 0
-                        });
-                    }
-                }
-                
-                // 2. Add clothing items
-                for (const item in currentState.clothing) {
-                    if (!currentState.clothing[item].active) continue;
-                    
-                    const variant = currentState.clothing[item].variant;
-                    const deps = dependencies[item];
-                    const depValues = deps.map(dep => currentState.bodyparts[dep]);
-                    
-                    // Create the filename pattern
-                    let baseFilename = `${item}_${variant}`;
-                    deps.forEach((dep, index) => {
-                        baseFilename += `_${depValues[index]}`;
-                    });
-                    
-                    // Find outline part (without _color suffix)
-                    const outlinePart = characterData.find(part => part.filename === baseFilename);
-                    if (outlinePart) {
-                        partsToRender.push({
-                            ...outlinePart,
-                            type: 'clothing_outline',
-                            imageFilename: baseFilename,
-                            layerValue: parseInt(outlinePart.layer) || 0
-                        });
-                    }
-                    
-                    // Find color part (with _color suffix)
-                    const colorFilename = baseFilename + '_color';
-                    const colorPart = characterData.find(part => part.filename === colorFilename);
-                    if (colorPart) {
-                        partsToRender.push({
-                            ...colorPart,
-                            type: 'clothing_color',
-                            imageFilename: colorFilename,
-                            layerValue: parseInt(colorPart.layer) || 0,
-                            colorValue: currentState.clothing[item].color
-                        });
-                    }
-                }
-                
-                // CRITICAL: Sort strictly by layer value - making sure to use the parsed numeric values
-                partsToRender.sort((a, b) => a.layerValue - b.layerValue);
-                
-                // Log the sort order to debug issues
-                console.log("Drawing parts in this layer order:", 
-                    partsToRender.map(p => `${p.imageFilename} (layer: ${p.layerValue})`));
-                
-                // 3. Load and draw images in the correct layer order
-                for (const part of partsToRender) {
-                    const imagePath = `images/${part.imageFilename}.png`;
-                    
-                    // Load image if not already loaded
-                    if (!loadedImages[imagePath]) {
-                        try {
-                            loadedImages[imagePath] = await loadImage(imagePath);
-                        } catch (error) {
-                            console.error(`Failed to load image: ${imagePath}`, error);
-                            continue;
-                        }
-                    }
-                    
-                    const img = loadedImages[imagePath];
-                    
-                    // Draw based on part type
-                    if (part.type === 'clothing_color') {
-                        // Apply color tint to this layer
-                        drawImageWithColor(img, part.colorValue);
-                    } else {
-                        // Draw normal image
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    }
-                }
-            } catch (error) {
-                console.error('Error rendering character:', error);
+                partsToRender.push({
+                    filename: bodyPart.filename,
+                    type: 'bodypart',
+                    layerValue: parseInt(bodyPart.layer) || 0,
+                    originalLayer: bodyPart.layer // For debugging
+                });
+            } else {
+                console.warn(`Could not find body part in data: ${filename}`);
             }
         }
+        
+        // 2. Add clothing items
+        for (const item in currentState.clothing) {
+            if (!currentState.clothing[item].active) continue;
+            
+            const variant = currentState.clothing[item].variant;
+            const deps = dependencies[item];
+            const depValues = deps.map(dep => currentState.bodyparts[dep]);
+            
+            // Create the filename pattern
+            let baseFilename = `${item}_${variant}`;
+            deps.forEach((dep, index) => {
+                baseFilename += `_${depValues[index]}`;
+            });
+            
+            // Find exact outline part (without _color suffix) by filename
+            const outlinePart = characterData.find(part => part.filename === baseFilename);
+            if (outlinePart) {
+                // Log the layer value we found for debugging
+                console.log(`Clothing outline ${baseFilename} has layer value: ${outlinePart.layer}`);
+                
+                partsToRender.push({
+                    filename: outlinePart.filename,
+                    type: 'clothing_outline',
+                    layerValue: parseInt(outlinePart.layer) || 0,
+                    originalLayer: outlinePart.layer // For debugging
+                });
+            } else {
+                console.warn(`Could not find clothing outline in data: ${baseFilename}`);
+            }
+            
+            // Find exact color part (with _color suffix) by filename
+            const colorFilename = baseFilename + '_color';
+            const colorPart = characterData.find(part => part.filename === colorFilename);
+            if (colorPart) {
+                // Log the layer value we found for debugging
+                console.log(`Clothing color ${colorFilename} has layer value: ${colorPart.layer}`);
+                
+                partsToRender.push({
+                    filename: colorPart.filename,
+                    type: 'clothing_color',
+                    layerValue: parseInt(colorPart.layer) || 0,
+                    originalLayer: colorPart.layer, // For debugging
+                    colorValue: currentState.clothing[item].color
+                });
+            } else {
+                console.warn(`Could not find clothing color in data: ${colorFilename}`);
+            }
+        }
+        
+        // CRITICAL: Sort strictly by layer value
+        partsToRender.sort((a, b) => a.layerValue - b.layerValue);
+        
+        // Log the sort order to debug issues
+        console.log("Drawing parts in this layer order:");
+        partsToRender.forEach(p => {
+            console.log(`${p.filename} (layer: ${p.layerValue}, original: ${p.originalLayer})`);
+        });
+        
+        // 3. Load and draw images in the correct layer order
+        for (const part of partsToRender) {
+            const imagePath = `images/${part.filename}.png`;
+            
+            // Load image if not already loaded
+            if (!loadedImages[imagePath]) {
+                try {
+                    loadedImages[imagePath] = await loadImage(imagePath);
+                } catch (error) {
+                    console.error(`Failed to load image: ${imagePath}`, error);
+                    continue;
+                }
+            }
+            
+            const img = loadedImages[imagePath];
+            
+            // Draw based on part type
+            if (part.type === 'clothing_color') {
+                // Apply color tint to this layer
+                drawImageWithColor(img, part.colorValue);
+            } else {
+                // Draw normal image
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            }
+        }
+    } catch (error) {
+        console.error('Error rendering character:', error);
+    }
+}
          
         // Improved color tinting function
         function drawImageWithColor(img, color) {
@@ -819,6 +856,38 @@
             // Capitalize first letter
             return str.charAt(0).toUpperCase() + str.slice(1);
         }
+
+        // Function to help debug layer issues
+function debugLayerValues() {
+    // Print examples of multi-dependency items
+    console.log("=== Checking Layer Values ===");
+    
+    // Check how CSV data is stored
+    const shirtExample = characterData.filter(item => 
+        item.filename.startsWith('shirt_') && item.filename.includes('_')
+    );
+    
+    console.log("Shirt items from CSV data:");
+    shirtExample.forEach(item => {
+        console.log(`${item.filename}: Layer = "${item.layer}" (${typeof item.layer}), Parsed = ${parseInt(item.layer)}`);
+    });
+    
+    // Check all items with potential layer issues
+    const multiDepItems = characterData.filter(item => 
+        (item.filename.split('_').length > 2)
+    );
+    
+    console.log("\nItems with multiple dependencies:");
+    console.log(`Found ${multiDepItems.length} items`);
+    
+    // Sample the first few
+    multiDepItems.slice(0, 10).forEach(item => {
+        console.log(`${item.filename}: Layer = "${item.layer}" (${typeof item.layer}), Parsed = ${parseInt(item.layer)}`);
+    });
+}
+
+// Make it available globally
+window.debugLayerValues = debugLayerValues;
     </script>
 </body>
 </html>
