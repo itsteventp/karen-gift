@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Character Customizer for Karen</title>
     <style>
+        /* Basic layout */
         body {
             font-family: 'Arial', sans-serif;
             display: flex;
@@ -65,6 +66,7 @@
             background-color: #f9f9f9;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
 
         .control-group {
@@ -85,6 +87,7 @@
             color: #555;
         }
 
+        /* Form controls */
         select {
             width: 100%;
             padding: 10px;
@@ -279,97 +282,117 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
-.password-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-}
 
-.password-container {
-    background-color: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-    width: 400px;
-    max-width: 90%;
-    text-align: center;
-}
+        /* Password protection styles */
+        .password-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
 
-.password-input-group {
-    display: flex;
-    margin: 20px 0;
-}
+        .password-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            width: 400px;
+            max-width: 90%;
+            text-align: center;
+        }
 
-.password-input-group input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px 0 0 4px;
-    font-size: 16px;
-}
+        .password-input-group {
+            display: flex;
+            margin: 20px 0;
+        }
 
-.password-input-group button {
-    padding: 10px 20px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 0 4px 4px 0;
-    cursor: pointer;
-    font-weight: bold;
-}
+        .password-input-group input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+            font-size: 16px;
+        }
 
-.password-input-group button:hover {
-    background-color: #45a049;
-}
+        .password-input-group button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            font-weight: bold;
+            width: auto;
+        }
 
-.password-error {
-    color: #ff3333;
-    min-height: 20px;
-    margin-top: 10px;
-}
+        .password-input-group button:hover {
+            background-color: #45a049;
+        }
 
-.locked {
-    position: relative;
-    pointer-events: none;
-    opacity: 0.7;
-}
+        .password-error {
+            color: #ff3333;
+            min-height: 20px;
+            margin-top: 10px;
+        }
 
-.locked::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.1) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M19 10h-1V7c0-3.9-3.1-7-7-7S4 3.1 4 7v3H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-8c0-1.1-.9-2-2-2zm-9 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm4.2-9H8.8V7c0-1.7 1.4-3.1 3.1-3.1 1.7 0 3.1 1.4 3.1 3.1v3z" fill="%23333"/></svg>') center no-repeat;
-    z-index: 10;
-}
+        .locked {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.7;
+        }
 
-.unlock-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: #2196F3;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 8px 15px;
-    cursor: pointer;
-    font-size: 14px;
-    z-index: 15;
-}
+        .locked::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
 
-.unlock-button:hover {
-    background-color: #0b7dda;
-}
+        .locked::before {
+            content: "🔒";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            z-index: 11;
+        }
+
+        .unlock-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 15;
+            width: auto;
+        }
+
+        .unlock-button:hover {
+            background-color: #0b7dda;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
         /* Mobile responsiveness */
         @media (max-width: 1200px) {
             body {
@@ -390,41 +413,44 @@
     </style>
 </head>
 <body>
-<div class="password-screen" id="main-password-screen">
-    <div class="password-container">
-        <h1>Character Customizer</h1>
-        <p>Enter the password to access the customizer</p>
-        <div class="password-input-group">
-            <input type="password" id="main-password-input" placeholder="Enter password">
-            <button id="main-password-submit">Submit</button>
+    <!-- Password Screens -->
+    <div class="password-screen" id="main-password-screen">
+        <div class="password-container">
+            <h1>Character Customizer</h1>
+            <p>Enter the password to access the customizer</p>
+            <div class="password-input-group">
+                <input type="password" id="main-password-input" placeholder="Enter password">
+                <button id="main-password-submit">Submit</button>
+            </div>
+            <p id="main-password-error" class="password-error"></p>
         </div>
-        <p id="main-password-error" class="password-error"></p>
     </div>
-</div>
 
-<div class="password-screen" id="bodypart-password-screen" style="display: none;">
-    <div class="password-container">
-        <h1>Unlock Body Parts</h1>
-        <p>Enter the password to modify body poses</p>
-        <div class="password-input-group">
-            <input type="password" id="bodypart-password-input" placeholder="Enter password">
-            <button id="bodypart-password-submit">Submit</button>
+    <div class="password-screen" id="bodypart-password-screen" style="display: none;">
+        <div class="password-container">
+            <h1>Unlock Body Parts</h1>
+            <p>Enter the password to modify body poses</p>
+            <div class="password-input-group">
+                <input type="password" id="bodypart-password-input" placeholder="Enter password">
+                <button id="bodypart-password-submit">Submit</button>
+            </div>
+            <p id="bodypart-password-error" class="password-error"></p>
         </div>
-        <p id="bodypart-password-error" class="password-error"></p>
     </div>
-</div>
 
-<div class="password-screen" id="clothing-password-screen" style="display: none;">
-    <div class="password-container">
-        <h1>Unlock Clothing</h1>
-        <p>Enter the password to modify clothing</p>
-        <div class="password-input-group">
-            <input type="password" id="clothing-password-input" placeholder="Enter password">
-            <button id="clothing-password-submit">Submit</button>
+    <div class="password-screen" id="clothing-password-screen" style="display: none;">
+        <div class="password-container">
+            <h1>Unlock Clothing</h1>
+            <p>Enter the password to modify clothing</p>
+            <div class="password-input-group">
+                <input type="password" id="clothing-password-input" placeholder="Enter password">
+                <button id="clothing-password-submit">Submit</button>
+            </div>
+            <p id="clothing-password-error" class="password-error"></p>
         </div>
-        <p id="clothing-password-error" class="password-error"></p>
     </div>
-</div>
+
+    <!-- Loading Screen -->
     <div class="loading-screen" id="loading-screen">
         <div class="loading-spinner"></div>
         <h2>Loading character data...</h2>
@@ -432,6 +458,7 @@
         <p id="error-msg"></p>
     </div>
 
+    <!-- Main Application -->
     <div class="canvas-container">
         <div class="canvas-wrapper">
             <canvas id="character-canvas" width="2160" height="3840"></canvas>
@@ -459,881 +486,7 @@
     </div>
 
     <script>
-        // Global variables
-        let characterData = [];
-        let loadedImages = {};
-        const canvas = document.getElementById('character-canvas');
-        const ctx = canvas.getContext('2d');
-        const loadingMessage = document.getElementById('loading-message');
-        const errorMsg = document.getElementById('error-msg');
-
-        // Password configuration
-const passwords = {
-    main: "karen", // First password to access the site
-    bodyparts: "love", // Second password to unlock body parts
-    clothing: "you"  // Third password to unlock clothing
-};
-
-// Lock states
-let locks = {
-    main: true,        // Site is locked initially
-    bodyparts: true,   // Body parts are locked initially
-    clothing: true     // Clothing is locked initially
-};
-
-// Initialize the app - this is the main entry point now
-window.onload = function() {
-    // First, set up the password protection UI
-    setupPasswordUI();
-    
-    // Then check if we should show the password screen or go directly to the app
-    if (locks.main) {
-        // Show password screen first, hide loading screen
-        document.getElementById('loading-screen').style.display = 'none';
-        document.getElementById('main-password-screen').style.display = 'flex';
-        document.getElementById('main-password-input').focus();
-    } else {
-        // Skip password and initialize the app
-        initializeApp();
-    }
-};
-
-// Setup password UI and event listeners
-function setupPasswordUI() {
-    // Add shake animation
-    document.head.insertAdjacentHTML('beforeend', `
-        <style>
-            @keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-                20%, 40%, 60%, 80% { transform: translateX(5px); }
-            }
-        </style>
-    `);
-    
-    // Set up main password screen
-    document.getElementById('main-password-submit').addEventListener('click', function() {
-        checkMainPassword();
-    });
-    
-    document.getElementById('main-password-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            checkMainPassword();
-        }
-    });
-    
-    // Set up bodypart password screen
-    document.getElementById('bodypart-password-submit').addEventListener('click', function() {
-        checkBodypartPassword();
-    });
-    
-    document.getElementById('bodypart-password-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            checkBodypartPassword();
-        }
-    });
-    
-    // Set up clothing password screen
-    document.getElementById('clothing-password-submit').addEventListener('click', function() {
-        checkClothingPassword();
-    });
-    
-    document.getElementById('clothing-password-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            checkClothingPassword();
-        }
-    });
-}
-
-// Initialize the main app - this is called after password is verified
-async function initializeApp() {
-    try {
-        // Show loading screen while we initialize
-        document.getElementById('loading-screen').style.display = 'flex';
-        loadingMessage.textContent = "Loading character data...";
-        
-        await loadCharacterData();
-        
-        loadingMessage.textContent = "Setting up controls...";
-        setupBodypartControls();
-        setupClothingControls();
-        setupLockUI(); // Setup the lock UI on the sections
-        
-        // Setup download button
-        document.getElementById('download-btn').addEventListener('click', downloadCharacter);
-        
-        loadingMessage.textContent = "Rendering character...";
-        await renderCharacter();
-        
-        // Setup canvas scaling
-        setupCanvasScaling();
-        
-        // Hide loading screen
-        document.getElementById('loading-screen').style.display = 'none';
-    } catch (error) {
-        console.error('Initialization error:', error);
-        errorMsg.textContent = 'Failed to initialize: ' + error.message;
-    }
-}
-
-// Setup the locks UI on the sections
-function setupLockUI() {
-    // Add unlock buttons to sections
-    const bodypartSection = document.querySelector('.section:nth-child(1)');
-    const clothingSection = document.querySelector('.section:nth-child(2)');
-    
-    // Add lock class to sections initially
-    if (locks.bodyparts) {
-        bodypartSection.classList.add('locked');
-    }
-    
-    if (locks.clothing) {
-        clothingSection.classList.add('locked');
-    }
-    
-    // Add unlock buttons
-    const bodypartUnlockBtn = document.createElement('button');
-    bodypartUnlockBtn.className = 'unlock-button';
-    bodypartUnlockBtn.textContent = 'Unlock';
-    bodypartUnlockBtn.addEventListener('click', function() {
-        showPasswordScreen('bodypart');
-    });
-    bodypartSection.style.position = 'relative';
-    bodypartSection.appendChild(bodypartUnlockBtn);
-    
-    // Hide button if already unlocked
-    if (!locks.bodyparts) {
-        bodypartUnlockBtn.style.display = 'none';
-    }
-    
-    const clothingUnlockBtn = document.createElement('button');
-    clothingUnlockBtn.className = 'unlock-button';
-    clothingUnlockBtn.textContent = 'Unlock';
-    clothingUnlockBtn.addEventListener('click', function() {
-        showPasswordScreen('clothing');
-    });
-    clothingSection.style.position = 'relative';
-    clothingSection.appendChild(clothingUnlockBtn);
-    
-    // Hide button if already unlocked
-    if (!locks.clothing) {
-        clothingUnlockBtn.style.display = 'none';
-    }
-}
-
-// Show specific password screen
-function showPasswordScreen(type) {
-    const screenId = `${type}-password-screen`;
-    document.getElementById(screenId).style.display = 'flex';
-    document.getElementById(`${type}-password-input`).focus();
-}
-
-// Hide specific password screen
-function hidePasswordScreen(type) {
-    const screenId = `${type}-password-screen`;
-    document.getElementById(screenId).style.display = 'none';
-}
-
-// Check main password
-function checkMainPassword() {
-    const input = document.getElementById('main-password-input');
-    const error = document.getElementById('main-password-error');
-    
-    if (input.value === passwords.main) {
-        // Correct password
-        locks.main = false;
-        hidePasswordScreen('main');
-        
-        // Initialize the app after password is verified
-        initializeApp();
-    } else {
-        // Wrong password
-        error.textContent = 'Incorrect password. Please try again.';
-        input.value = '';
-        input.focus();
-        
-        // Shake effect
-        const container = document.querySelector('#main-password-screen .password-container');
-        container.style.animation = 'none';
-        setTimeout(() => {
-            container.style.animation = 'shake 0.5s';
-        }, 10);
-    }
-}
-
-// Check bodypart password
-function checkBodypartPassword() {
-    const input = document.getElementById('bodypart-password-input');
-    const error = document.getElementById('bodypart-password-error');
-    
-    if (input.value === passwords.bodyparts) {
-        // Correct password
-        locks.bodyparts = false;
-        hidePasswordScreen('bodypart');
-        
-        // Unlock bodyparts section
-        const bodypartSection = document.querySelector('.section:nth-child(1)');
-        bodypartSection.classList.remove('locked');
-        bodypartSection.querySelector('.unlock-button').style.display = 'none';
-        
-        // Update the controls to be enabled
-        updateControlStates();
-    } else {
-        // Wrong password
-        error.textContent = 'Incorrect password. Please try again.';
-        input.value = '';
-        input.focus();
-        
-        // Shake effect
-        const container = document.querySelector('#bodypart-password-screen .password-container');
-        container.style.animation = 'none';
-        setTimeout(() => {
-            container.style.animation = 'shake 0.5s';
-        }, 10);
-    }
-}
-
-// Check clothing password
-function checkClothingPassword() {
-    const input = document.getElementById('clothing-password-input');
-    const error = document.getElementById('clothing-password-error');
-    
-    if (input.value === passwords.clothing) {
-        // Correct password
-        locks.clothing = false;
-        hidePasswordScreen('clothing');
-        
-        // Unlock clothing section
-        const clothingSection = document.querySelector('.section:nth-child(2)');
-        clothingSection.classList.remove('locked');
-        clothingSection.querySelector('.unlock-button').style.display = 'none';
-        
-        // Update the controls to be enabled
-        updateControlStates();
-    } else {
-        // Wrong password
-        error.textContent = 'Incorrect password. Please try again.';
-        input.value = '';
-        input.focus();
-        
-        // Shake effect
-        const container = document.querySelector('#clothing-password-screen .password-container');
-        container.style.animation = 'none';
-        setTimeout(() => {
-            container.style.animation = 'shake 0.5s';
-        }, 10);
-    }
-}
-
-// Update all control states based on lock status
-function updateControlStates() {
-    // Update bodypart controls
-    const bodypartSelects = document.querySelectorAll('#bodyparts-container select');
-    bodypartSelects.forEach(select => {
-        select.disabled = locks.bodyparts;
-    });
-    
-    // Update clothing controls
-    const clothingSelects = document.querySelectorAll('#clothing-container select');
-    clothingSelects.forEach(select => {
-        select.disabled = locks.clothing;
-    });
-    
-    const clothingToggles = document.querySelectorAll('#clothing-container input[type="checkbox"]');
-    clothingToggles.forEach(toggle => {
-        toggle.disabled = locks.clothing;
-    });
-    
-    const clothingColorPickers = document.querySelectorAll('#clothing-container input[type="color"]');
-    clothingColorPickers.forEach(picker => {
-        picker.disabled = locks.clothing;
-    });
-}
-        
-        // Current state
-        let currentState = {
-            bodyparts: {
-                torso: '01',
-                head: '01',
-                larm: '01',
-                rarm: '01',
-                lleg: '01',
-                rleg: '01'
-            },
-            clothing: {
-                shirt: { active: true, variant: '01', color: '#000000' },
-                hair: { active: true, variant: '01', color: '#000000' },
-                face: { active: true, variant: '01', color: '#000000' },
-                jacket: { active: false, variant: '01', color: '#000000' },
-                pants: { active: true, variant: '01', color: '#000000' },
-                lshoe: { active: true, variant: '01', color: '#000000' },
-                rshoe: { active: true, variant: '01', color: '#000000' }
-            }
-        };
-    
-        // Dependencies mapping
-        const dependencies = {
-            shirt: ['larm', 'rarm'],
-            jacket: ['larm', 'rarm'],
-            pants: ['lleg', 'rleg'],
-            hair: ['head'],
-            face: ['head'],
-            lshoe: ['lleg'],
-            rshoe: ['rleg']
-        };
-    
-        // Variations count
-        const variations = {
-            bodyparts: {
-                torso: 1,
-                head: 3,
-                larm: 4,
-                rarm: 4,
-                lleg: 4,
-                rleg: 4
-            },
-            clothing: {
-                shirt: 3,
-                hair: 2,
-                face: 6,
-                jacket: 2,
-                pants: 3,
-                lshoe: 3,
-                rshoe: 3
-            }
-        };
-    
-        // Load character data from CSV with better parsing
-async function loadCharacterData() {
-    try {
-        const response = await fetch('character_data.csv');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const csvText = await response.text();
-        
-        // Parse CSV
-        const lines = csvText.split('\n');
-        if (lines.length <= 1) {
-            throw new Error("CSV file appears to be empty");
-        }
-        
-        const headers = lines[0].split(',').map(h => h.trim());
-        console.log("CSV Headers:", headers);
-        
-        // Find the index of the 'layer' column
-        const layerIndex = headers.findIndex(h => h.toLowerCase() === 'layer');
-        if (layerIndex === -1) {
-            console.warn("No 'layer' column found in CSV!");
-        } else {
-            console.log("Layer column found at index:", layerIndex);
-        }
-        
-        for (let i = 1; i < lines.length; i++) {
-            if (lines[i].trim() === '') continue;
-            
-            const values = lines[i].split(',');
-            const item = {};
-            
-            headers.forEach((header, index) => {
-                // Ensure we're getting the value, even if it's empty
-                item[header] = index < values.length ? values[index].trim() : '';
-            });
-            
-            characterData.push(item);
-        }
-        
-        // Verify some layer values after loading
-        const sampleItems = characterData.slice(0, 5);
-        console.log("Sample items after CSV load:");
-        sampleItems.forEach(item => {
-            console.log(`${item.filename}: Layer = "${item.layer}"`);
-        });
-        
-        console.log(`Character data loaded: ${characterData.length} items`);
-    } catch (error) {
-        console.error('Error loading character data:', error);
-        throw error;
-    }
-}
-    
-        // Update setupBodypartControls
-function setupBodypartControls() {
-    const container = document.getElementById('bodyparts-container');
-    container.innerHTML = ''; // Clear existing content
-    
-    for (const part in variations.bodyparts) {
-        const maxVariation = variations.bodyparts[part];
-        
-        const controlGroup = document.createElement('div');
-        controlGroup.className = 'control-group';
-        
-        const label = document.createElement('label');
-        label.textContent = formatLabel(part);
-        controlGroup.appendChild(label);
-        
-        const select = document.createElement('select');
-        select.id = `${part}-select`;
-        
-        for (let i = 1; i <= maxVariation; i++) {
-            const option = document.createElement('option');
-            const varNum = i.toString().padStart(2, '0');
-            option.value = varNum;
-            option.textContent = `Pose ${i}`;
-            select.appendChild(option);
-        }
-        
-        // Only enable if unlocked
-        select.disabled = locks.bodyparts;
-        
-        select.addEventListener('change', (e) => {
-            if (!locks.bodyparts) {
-                currentState.bodyparts[part] = e.target.value;
-                renderCharacter();
-            }
-        });
-        
-        controlGroup.appendChild(select);
-        container.appendChild(controlGroup);
-    }
-}
-
-// Update setupClothingControls
-function setupClothingControls() {
-    const container = document.getElementById('clothing-container');
-    container.innerHTML = ''; // Clear existing content
-    
-    for (const item in variations.clothing) {
-        const maxVariation = variations.clothing[item];
-        
-        const controlGroup = document.createElement('div');
-        controlGroup.className = 'control-group';
-        
-        // Toggle switch
-        const toggleContainer = document.createElement('div');
-        toggleContainer.className = 'toggle-container';
-        
-        const toggleLabel = document.createElement('span');
-        toggleLabel.textContent = formatLabel(item);
-        
-        const toggleSwitch = document.createElement('label');
-        toggleSwitch.className = 'toggle-switch';
-        
-        const toggleInput = document.createElement('input');
-        toggleInput.type = 'checkbox';
-        toggleInput.checked = currentState.clothing[item].active;
-        
-        // Only enable if unlocked
-        toggleInput.disabled = locks.clothing;
-        
-        toggleInput.addEventListener('change', (e) => {
-            if (!locks.clothing) {
-                currentState.clothing[item].active = e.target.checked;
-                renderCharacter();
-            }
-        });
-        
-        const slider = document.createElement('span');
-        slider.className = 'slider';
-        
-        toggleSwitch.appendChild(toggleInput);
-        toggleSwitch.appendChild(slider);
-        toggleContainer.appendChild(toggleSwitch);
-        toggleContainer.appendChild(toggleLabel);
-        controlGroup.appendChild(toggleContainer);
-        
-        // Variant select
-        const select = document.createElement('select');
-        select.id = `${item}-select`;
-        
-        for (let i = 1; i <= maxVariation; i++) {
-            const option = document.createElement('option');
-            const varNum = i.toString().padStart(2, '0');
-            option.value = varNum;
-            option.textContent = `Style ${i}`;
-            select.appendChild(option);
-        }
-        
-        // Only enable if unlocked
-        select.disabled = locks.clothing;
-        
-        select.addEventListener('change', (e) => {
-            if (!locks.clothing) {
-                currentState.clothing[item].variant = e.target.value;
-                renderCharacter();
-            }
-        });
-        
-        controlGroup.appendChild(select);
-        
-        // Color picker (if applicable)
-        const colorPickerContainer = document.createElement('div');
-        colorPickerContainer.className = 'color-picker-container';
-        
-        const colorLabel = document.createElement('span');
-        colorLabel.className = 'color-picker-label';
-        colorLabel.textContent = 'Color:';
-        
-        const colorPicker = document.createElement('input');
-        colorPicker.type = 'color';
-        colorPicker.className = 'color-picker';
-        colorPicker.value = currentState.clothing[item].color;
-        
-        // Only enable if unlocked
-        colorPicker.disabled = locks.clothing;
-        
-        colorPicker.addEventListener('input', (e) => {
-            if (!locks.clothing) {
-                currentState.clothing[item].color = e.target.value;
-                renderCharacter();
-            }
-        });
-        
-        colorPickerContainer.appendChild(colorLabel);
-        colorPickerContainer.appendChild(colorPicker);
-        controlGroup.appendChild(colorPickerContainer);
-        
-        container.appendChild(controlGroup);
-    }
-}
-    
-        // Render character based on current state - with fixed layer handling
-async function renderCharacter() {
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    try {
-        // For debugging
-        console.log("Starting render with CSV data count:", characterData.length);
-        
-        // Collect all parts to render
-        const partsToRender = [];
-        
-        // 1. Add body parts
-        for (const part in currentState.bodyparts) {
-            const variation = currentState.bodyparts[part];
-            const filename = `${part}_${variation}`;
-            
-            // Find matching part in character data
-            const bodyPart = characterData.find(item => item.filename === filename);
-            if (bodyPart) {
-                // Log the layer value we found for debugging
-                console.log(`Body part ${filename} has layer value: ${bodyPart.layer}`);
-                
-                partsToRender.push({
-                    filename: bodyPart.filename,
-                    type: 'bodypart',
-                    layerValue: parseInt(bodyPart.layer) || 0,
-                    originalLayer: bodyPart.layer // For debugging
-                });
-            } else {
-                console.warn(`Could not find body part in data: ${filename}`);
-            }
-        }
-        
-        // 2. Add clothing items
-        for (const item in currentState.clothing) {
-            if (!currentState.clothing[item].active) continue;
-            
-            const variant = currentState.clothing[item].variant;
-            const deps = dependencies[item];
-            const depValues = deps.map(dep => currentState.bodyparts[dep]);
-            
-            // Create the filename pattern
-            let baseFilename = `${item}_${variant}`;
-            deps.forEach((dep, index) => {
-                baseFilename += `_${depValues[index]}`;
-            });
-            
-            // Find exact outline part (without _color suffix) by filename
-            const outlinePart = characterData.find(part => part.filename === baseFilename);
-            if (outlinePart) {
-                // Log the layer value we found for debugging
-                console.log(`Clothing outline ${baseFilename} has layer value: ${outlinePart.layer}`);
-                
-                partsToRender.push({
-                    filename: outlinePart.filename,
-                    type: 'clothing_outline',
-                    layerValue: parseInt(outlinePart.layer) || 0,
-                    originalLayer: outlinePart.layer // For debugging
-                });
-            } else {
-                console.warn(`Could not find clothing outline in data: ${baseFilename}`);
-            }
-            
-            // Find exact color part (with _color suffix) by filename
-            const colorFilename = baseFilename + '_color';
-            const colorPart = characterData.find(part => part.filename === colorFilename);
-            if (colorPart) {
-                // Log the layer value we found for debugging
-                console.log(`Clothing color ${colorFilename} has layer value: ${colorPart.layer}`);
-                
-                partsToRender.push({
-                    filename: colorPart.filename,
-                    type: 'clothing_color',
-                    layerValue: parseInt(colorPart.layer) || 0,
-                    originalLayer: colorPart.layer, // For debugging
-                    colorValue: currentState.clothing[item].color
-                });
-            } else {
-                console.warn(`Could not find clothing color in data: ${colorFilename}`);
-            }
-        }
-        
-        // CRITICAL: Sort strictly by layer value
-        partsToRender.sort((a, b) => a.layerValue - b.layerValue);
-        
-        // Log the sort order to debug issues
-        console.log("Drawing parts in this layer order:");
-        partsToRender.forEach(p => {
-            console.log(`${p.filename} (layer: ${p.layerValue}, original: ${p.originalLayer})`);
-        });
-        
-        // 3. Load and draw images in the correct layer order
-        for (const part of partsToRender) {
-            const imagePath = `images/${part.filename}.png`;
-            
-            // Load image if not already loaded
-            if (!loadedImages[imagePath]) {
-                try {
-                    loadedImages[imagePath] = await loadImage(imagePath);
-                } catch (error) {
-                    console.error(`Failed to load image: ${imagePath}`, error);
-                    continue;
-                }
-            }
-            
-            const img = loadedImages[imagePath];
-            
-            // Draw based on part type
-            if (part.type === 'clothing_color') {
-                // Apply color tint to this layer
-                drawImageWithColor(img, part.colorValue);
-            } else {
-                // Draw normal image
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            }
-        }
-    } catch (error) {
-        console.error('Error rendering character:', error);
-    }
-}
-         
-        // Improved color tinting function
-        function drawImageWithColor(img, color) {
-            try {
-                // Create a temporary canvas for manipulation
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = canvas.width;
-                tempCanvas.height = canvas.height;
-                const tempCtx = tempCanvas.getContext('2d');
-                
-                // Draw the original image to the temp canvas
-                tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
-                
-                // Get the image data
-                const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-                const data = imageData.data;
-                
-                // Convert hex color to RGB
-                const r = parseInt(color.slice(1, 3), 16);
-                const g = parseInt(color.slice(3, 5), 16);
-                const b = parseInt(color.slice(5, 7), 16);
-                
-                // Apply the color tint
-                for (let i = 0; i < data.length; i += 4) {
-                    // Skip if pixel is transparent
-                    if (data[i + 3] === 0) continue;
-                    
-                    // Calculate grayscale value - use average of RGB for better accuracy
-                    const grayValue = (data[i] + data[i + 1] + data[i + 2]) / (3 * 255);
-                    
-                    // Apply the tint by multiplying the color
-                    data[i] = Math.round(r * grayValue);       // Red
-                    data[i + 1] = Math.round(g * grayValue);   // Green
-                    data[i + 2] = Math.round(b * grayValue);   // Blue
-                    // Keep original alpha
-                }
-                
-                // Put the modified image data back on the temp canvas
-                tempCtx.putImageData(imageData, 0, 0);
-                
-                // Draw the tinted image to the main canvas
-                ctx.drawImage(tempCanvas, 0, 0);
-            } catch (error) {
-                console.error('Error applying color tint:', error);
-            }
-        }
-    
-        // Helper function to load an image
-        function loadImage(src) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => resolve(img);
-                img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
-                img.src = src;
-                
-                // Set a timeout in case the image load hangs
-                const timeout = setTimeout(() => {
-                    reject(new Error(`Image load timeout: ${src}`));
-                }, 5000);
-                
-                img.onload = () => {
-                    clearTimeout(timeout);
-                    resolve(img);
-                };
-            });
-        }
-    
-        // Setup canvas scaling for responsive design
-        function setupCanvasScaling() {
-            const canvasWrapper = document.querySelector('.canvas-wrapper');
-            const canvas = document.getElementById('character-canvas');
-            
-            // Function to resize canvas
-            function resizeCanvas() {
-                const wrapperHeight = canvasWrapper.clientHeight;
-                const wrapperWidth = canvasWrapper.clientWidth;
-                
-                // Original aspect ratio 9:16
-                const aspectRatio = 2160 / 3840;
-                
-                let displayWidth, displayHeight;
-                
-                // If wrapper is taller than canvas aspect ratio
-                if (wrapperWidth / wrapperHeight > aspectRatio) {
-                    // Constrain by height
-                    displayHeight = wrapperHeight;
-                    displayWidth = wrapperHeight * aspectRatio;
-                } else {
-                    // Constrain by width
-                    displayWidth = wrapperWidth;
-                    displayHeight = wrapperWidth / aspectRatio;
-                }
-                
-                // Apply scale transformation to canvas
-                canvas.style.width = `${displayWidth}px`;
-                canvas.style.height = `${displayHeight}px`;
-            }
-            
-            // Initial resize
-            resizeCanvas();
-            
-            // Resize on window change
-            window.addEventListener('resize', resizeCanvas);
-        }
-    
-        // Download the character as PNG
-        function downloadCharacter() {
-            try {
-                const link = document.createElement('a');
-                link.download = 'my-character.png';
-                
-                // Use a timeout to ensure the latest render is captured
-                setTimeout(() => {
-                    try {
-                        link.href = canvas.toDataURL('image/png');
-                        link.click();
-                    } catch (e) {
-                        console.error('Error creating download link:', e);
-                        alert('Failed to download image: ' + e.message);
-                    }
-                }, 100);
-            } catch (error) {
-                console.error('Error downloading character:', error);
-                alert('Failed to download: ' + error.message);
-            }
-        }
-    
-        // Helper function to format labels
-        function formatLabel(str) {
-            // Convert larm to Left Arm, rleg to Right Leg, etc.
-            if (str === 'larm') return 'Left Arm';
-            if (str === 'rarm') return 'Right Arm';
-            if (str === 'lleg') return 'Left Leg';
-            if (str === 'rleg') return 'Right Leg';
-            if (str === 'lshoe') return 'Left Shoe';
-            if (str === 'rshoe') return 'Right Shoe';
-            
-            // Capitalize first letter
-            return str.charAt(0).toUpperCase() + str.slice(1);
-        }
-
-        // Function to help debug layer issues
-function debugLayerValues() {
-    // Print examples of multi-dependency items
-    console.log("=== Checking Layer Values ===");
-    
-    // Check how CSV data is stored
-    const shirtExample = characterData.filter(item => 
-        item.filename.startsWith('shirt_') && item.filename.includes('_')
-    );
-    
-    console.log("Shirt items from CSV data:");
-    shirtExample.forEach(item => {
-        console.log(`${item.filename}: Layer = "${item.layer}" (${typeof item.layer}), Parsed = ${parseInt(item.layer)}`);
-    });
-    
-    // Check all items with potential layer issues
-    const multiDepItems = characterData.filter(item => 
-        (item.filename.split('_').length > 2)
-    );
-    
-    console.log("\nItems with multiple dependencies:");
-    console.log(`Found ${multiDepItems.length} items`);
-    
-    // Sample the first few
-    multiDepItems.slice(0, 10).forEach(item => {
-        console.log(`${item.filename}: Layer = "${item.layer}" (${typeof item.layer}), Parsed = ${parseInt(item.layer)}`);
-    });
-}
-
-
-        // ordScreen(type) {
-    cons
-
-// Check bodypart password
-function checkBodypartPassword() {
-    const input = document.getElementById('bodypart-password-input');
-    const error = document.getElementById('bodypart-password-error');
-    
-    if (input.value === passwords.bodyparts) {
-        // Correct password
-        locks.bodyparts = false;
-        hidePasswordScreen('bodypart');
-        
-        // Unlock bodyparts section
-        const bodypartSection = document.querySelector('.section:nth-child(1)');
-        bodypartSection.classList.remove('locked');
-        bodypartSection.querySelector('.unlock-button').style.display = 'none';
-    } else {
-        // Wrong password
-        error.textContent = 'Incorrect password. Please try again.';
-        input.value = '';
-        input.focus();
-        
-        // Shake effect
-        const container = document.querySelector('#bodypart-password-screen .password-container');
-        container.style.animation = 'none';
-        setTimeout(() => {
-            container.style.animation = 'shake 0.5s';
-        }, 10);
-    }
-}
-
-// Add shake animation
-document.head.insertAdjacentHTML('beforeend', `
-    <style>
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
-    </style>
-`);
-// Make it available globally
-window.debugLayerValues = debugLayerValues;
+        // JavaScript code will be provided separately
     </script>
 </body>
 </html>
