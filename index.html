@@ -735,42 +735,42 @@
     // Add locks to sections
     function addSectionLocks() {
         // Bodyparts section
-        const bodypartSection = document.querySelector('.section:nth-child(1)');
-        bodypartSection.classList.add('locked');
-        bodypartSection.style.position = 'relative';
+        const bodypartSection = document.getElementById('bodyparts-container');
+        if (bodypartSection) {
+            bodypartSection.classList.add('locked');
+            bodypartSection.style.position = 'relative';
         
-        const bodypartBtn = document.createElement('button');
-        bodypartBtn.className = 'unlock-button';
-        bodypartBtn.textContent = 'Unlock';
-        bodypartBtn.addEventListener('click', function() {
-            document.getElementById('bodypart-password-screen').style.display = 'flex';
-            document.getElementById('bodypart-password-input').focus();
-        });
+            const bodypartBtn = document.createElement('button');
+            bodypartBtn.className = 'unlock-button';
+            bodypartBtn.textContent = 'Unlock';
+            bodypartBtn.addEventListener('click', function() {
+                document.getElementById('bodypart-password-screen').style.display = 'flex';
+                document.getElementById('bodypart-password-input').focus();
+            });
         
-        bodypartSection.appendChild(bodypartBtn);
-        
+            bodypartSection.appendChild(bodypartBtn);
+        } else {
+            console.error('Bodypart section not found in the DOM');
+        }
+    
         // Clothing section
-        const clothingSection = document.querySelector('.section:nth-child(2)');
-        clothingSection.classList.add('locked');
-        clothingSection.style.position = 'relative';
+        const clothingSection = document.getElementById('clothing-container');
+        if (clothingSection) {
+            clothingSection.classList.add('locked');
+            clothingSection.style.position = 'relative';
         
-        const clothingBtn = document.createElement('button');
-        clothingBtn.className = 'unlock-button';
-        clothingBtn.textContent = 'Unlock';
-        clothingBtn.addEventListener('click', function() {
-            document.getElementById('clothing-password-screen').style.display = 'flex';
-            document.getElementById('clothing-password-input').focus();
-        });
+            const clothingBtn = document.createElement('button');
+            clothingBtn.className = 'unlock-button';
+            clothingBtn.textContent = 'Unlock';
+            clothingBtn.addEventListener('click', function() {
+                document.getElementById('clothing-password-screen').style.display = 'flex';
+                document.getElementById('clothing-password-input').focus();
+            });
         
-        clothingSection.appendChild(clothingBtn);
-    }
-
-    // Enable bodypart controls
-    function enableBodypartControls() {
-        const selects = document.querySelectorAll('#bodyparts-container select');
-        selects.forEach(function(select) {
-            select.disabled = false;
-        });
+            clothingSection.appendChild(clothingBtn);
+        } else {
+            console.error('Clothing section not found in the DOM');
+        }
     }
 
     // Enable clothing controls
