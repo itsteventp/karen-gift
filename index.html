@@ -370,6 +370,7 @@
 
         .unlock-button {
             position: absolute;
+            pointer-events: auto;
             top: 10px;
             right: 10px;
             background-color: #2196F3;
@@ -735,7 +736,7 @@
     // Add locks to sections
     function addSectionLocks() {
         // Bodyparts section
-        const bodypartSection = document.getElementById('bodyparts-container');
+        const bodypartSection = document.querySelector('.controls-panel .section:nth-of-type(1)');
         if (bodypartSection) {
             bodypartSection.classList.add('locked');
             bodypartSection.style.position = 'relative';
@@ -754,7 +755,7 @@
         }
     
         // Clothing section
-        const clothingSection = document.getElementById('clothing-container');
+        const clothingSection = document.querySelector('.controls-panel .section:nth-of-type(2)');
         if (clothingSection) {
             clothingSection.classList.add('locked');
             clothingSection.style.position = 'relative';
