@@ -466,6 +466,289 @@
         const ctx = canvas.getContext('2d');
         const loadingMessage = document.getElementById('loading-message');
         const errorMsg = document.getElementById('error-msg');
+
+        // Password configuration
+const passwords = {
+    main: "karen", // First password to access the site
+    bodyparts: "love", // Second password to unlock body parts
+    clothing: "you"  // Third password to unlock clothing
+};
+
+// Lock states
+let locks = {
+    main: true,        // Site is locked initially
+    bodyparts: true,   // Body parts are locked initially
+    clothing: true     // Clothing is locked initially
+};
+
+// Initialize the app - this is the main entry point now
+window.onload = function() {
+    // First, set up the password protection UI
+    setupPasswordUI();
+    
+    // Then check if we should show the password screen or go directly to the app
+    if (locks.main) {
+        // Show password screen first, hide loading screen
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('main-password-screen').style.display = 'flex';
+        document.getElementById('main-password-input').focus();
+    } else {
+        // Skip password and initialize the app
+        initializeApp();
+    }
+};
+
+// Setup password UI and event listeners
+function setupPasswordUI() {
+    // Add shake animation
+    document.head.insertAdjacentHTML('beforeend', `
+        <style>
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+        </style>
+    `);
+    
+    // Set up main password screen
+    document.getElementById('main-password-submit').addEventListener('click', function() {
+        checkMainPassword();
+    });
+    
+    document.getElementById('main-password-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            checkMainPassword();
+        }
+    });
+    
+    // Set up bodypart password screen
+    document.getElementById('bodypart-password-submit').addEventListener('click', function() {
+        checkBodypartPassword();
+    });
+    
+    document.getElementById('bodypart-password-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            checkBodypartPassword();
+        }
+    });
+    
+    // Set up clothing password screen
+    document.getElementById('clothing-password-submit').addEventListener('click', function() {
+        checkClothingPassword();
+    });
+    
+    document.getElementById('clothing-password-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            checkClothingPassword();
+        }
+    });
+}
+
+// Initialize the main app - this is called after password is verified
+async function initializeApp() {
+    try {
+        // Show loading screen while we initialize
+        document.getElementById('loading-screen').style.display = 'flex';
+        loadingMessage.textContent = "Loading character data...";
+        
+        await loadCharacterData();
+        
+        loadingMessage.textContent = "Setting up controls...";
+        setupBodypartControls();
+        setupClothingControls();
+        setupLockUI(); // Setup the lock UI on the sections
+        
+        // Setup download button
+        document.getElementById('download-btn').addEventListener('click', downloadCharacter);
+        
+        loadingMessage.textContent = "Rendering character...";
+        await renderCharacter();
+        
+        // Setup canvas scaling
+        setupCanvasScaling();
+        
+        // Hide loading screen
+        document.getElementById('loading-screen').style.display = 'none';
+    } catch (error) {
+        console.error('Initialization error:', error);
+        errorMsg.textContent = 'Failed to initialize: ' + error.message;
+    }
+}
+
+// Setup the locks UI on the sections
+function setupLockUI() {
+    // Add unlock buttons to sections
+    const bodypartSection = document.querySelector('.section:nth-child(1)');
+    const clothingSection = document.querySelector('.section:nth-child(2)');
+    
+    // Add lock class to sections initially
+    if (locks.bodyparts) {
+        bodypartSection.classList.add('locked');
+    }
+    
+    if (locks.clothing) {
+        clothingSection.classList.add('locked');
+    }
+    
+    // Add unlock buttons
+    const bodypartUnlockBtn = document.createElement('button');
+    bodypartUnlockBtn.className = 'unlock-button';
+    bodypartUnlockBtn.textContent = 'Unlock';
+    bodypartUnlockBtn.addEventListener('click', function() {
+        showPasswordScreen('bodypart');
+    });
+    bodypartSection.style.position = 'relative';
+    bodypartSection.appendChild(bodypartUnlockBtn);
+    
+    // Hide button if already unlocked
+    if (!locks.bodyparts) {
+        bodypartUnlockBtn.style.display = 'none';
+    }
+    
+    const clothingUnlockBtn = document.createElement('button');
+    clothingUnlockBtn.className = 'unlock-button';
+    clothingUnlockBtn.textContent = 'Unlock';
+    clothingUnlockBtn.addEventListener('click', function() {
+        showPasswordScreen('clothing');
+    });
+    clothingSection.style.position = 'relative';
+    clothingSection.appendChild(clothingUnlockBtn);
+    
+    // Hide button if already unlocked
+    if (!locks.clothing) {
+        clothingUnlockBtn.style.display = 'none';
+    }
+}
+
+// Show specific password screen
+function showPasswordScreen(type) {
+    const screenId = `${type}-password-screen`;
+    document.getElementById(screenId).style.display = 'flex';
+    document.getElementById(`${type}-password-input`).focus();
+}
+
+// Hide specific password screen
+function hidePasswordScreen(type) {
+    const screenId = `${type}-password-screen`;
+    document.getElementById(screenId).style.display = 'none';
+}
+
+// Check main password
+function checkMainPassword() {
+    const input = document.getElementById('main-password-input');
+    const error = document.getElementById('main-password-error');
+    
+    if (input.value === passwords.main) {
+        // Correct password
+        locks.main = false;
+        hidePasswordScreen('main');
+        
+        // Initialize the app after password is verified
+        initializeApp();
+    } else {
+        // Wrong password
+        error.textContent = 'Incorrect password. Please try again.';
+        input.value = '';
+        input.focus();
+        
+        // Shake effect
+        const container = document.querySelector('#main-password-screen .password-container');
+        container.style.animation = 'none';
+        setTimeout(() => {
+            container.style.animation = 'shake 0.5s';
+        }, 10);
+    }
+}
+
+// Check bodypart password
+function checkBodypartPassword() {
+    const input = document.getElementById('bodypart-password-input');
+    const error = document.getElementById('bodypart-password-error');
+    
+    if (input.value === passwords.bodyparts) {
+        // Correct password
+        locks.bodyparts = false;
+        hidePasswordScreen('bodypart');
+        
+        // Unlock bodyparts section
+        const bodypartSection = document.querySelector('.section:nth-child(1)');
+        bodypartSection.classList.remove('locked');
+        bodypartSection.querySelector('.unlock-button').style.display = 'none';
+        
+        // Update the controls to be enabled
+        updateControlStates();
+    } else {
+        // Wrong password
+        error.textContent = 'Incorrect password. Please try again.';
+        input.value = '';
+        input.focus();
+        
+        // Shake effect
+        const container = document.querySelector('#bodypart-password-screen .password-container');
+        container.style.animation = 'none';
+        setTimeout(() => {
+            container.style.animation = 'shake 0.5s';
+        }, 10);
+    }
+}
+
+// Check clothing password
+function checkClothingPassword() {
+    const input = document.getElementById('clothing-password-input');
+    const error = document.getElementById('clothing-password-error');
+    
+    if (input.value === passwords.clothing) {
+        // Correct password
+        locks.clothing = false;
+        hidePasswordScreen('clothing');
+        
+        // Unlock clothing section
+        const clothingSection = document.querySelector('.section:nth-child(2)');
+        clothingSection.classList.remove('locked');
+        clothingSection.querySelector('.unlock-button').style.display = 'none';
+        
+        // Update the controls to be enabled
+        updateControlStates();
+    } else {
+        // Wrong password
+        error.textContent = 'Incorrect password. Please try again.';
+        input.value = '';
+        input.focus();
+        
+        // Shake effect
+        const container = document.querySelector('#clothing-password-screen .password-container');
+        container.style.animation = 'none';
+        setTimeout(() => {
+            container.style.animation = 'shake 0.5s';
+        }, 10);
+    }
+}
+
+// Update all control states based on lock status
+function updateControlStates() {
+    // Update bodypart controls
+    const bodypartSelects = document.querySelectorAll('#bodyparts-container select');
+    bodypartSelects.forEach(select => {
+        select.disabled = locks.bodyparts;
+    });
+    
+    // Update clothing controls
+    const clothingSelects = document.querySelectorAll('#clothing-container select');
+    clothingSelects.forEach(select => {
+        select.disabled = locks.clothing;
+    });
+    
+    const clothingToggles = document.querySelectorAll('#clothing-container input[type="checkbox"]');
+    clothingToggles.forEach(toggle => {
+        toggle.disabled = locks.clothing;
+    });
+    
+    const clothingColorPickers = document.querySelectorAll('#clothing-container input[type="color"]');
+    clothingColorPickers.forEach(picker => {
+        picker.disabled = locks.clothing;
+    });
+}
         
         // Current state
         let currentState = {
@@ -1049,105 +1332,8 @@ function debugLayerValues() {
 }
 
 
-        // Add this to the top of your existing JavaScript
-// Password configuration
-const passwords = {
-    main: "karen", // First password to access the site
-    bodyparts: "love", // Second password to unlock body parts
-    clothing: "you"  // Third password to unlock clothing
-};
-
-// Lock states
-let locks = {
-    main: true,        // Site is locked initially
-    bodyparts: true,   // Body parts are locked initially
-    clothing: true     // Clothing is locked initially
-};
-
-// Initialize password protection
-function initializePasswordProtection() {
-    // Add unlock buttons to sections
-    const bodypartSection = document.querySelector('.section:nth-child(1)');
-    const clothingSection = document.querySelector('.section:nth-child(2)');
-    
-    // Add lock class to sections initially
-    bodypartSection.classList.add('locked');
-    clothingSection.classList.add('locked');
-    
-    // Add unlock buttons
-    const bodypartUnlockBtn = document.createElement('button');
-    bodypartUnlockBtn.className = 'unlock-button';
-    bodypartUnlockBtn.textContent = 'Unlock';
-    bodypartUnlockBtn.addEventListener('click', () => showPasswordScreen('bodypart'));
-    bodypartSection.style.position = 'relative';
-    bodypartSection.appendChild(bodypartUnlockBtn);
-    
-    const clothingUnlockBtn = document.createElement('button');
-    clothingUnlockBtn.className = 'unlock-button';
-    clothingUnlockBtn.textContent = 'Unlock';
-    clothingUnlockBtn.addEventListener('click', () => showPasswordScreen('clothing'));
-    clothingSection.style.position = 'relative';
-    clothingSection.appendChild(clothingUnlockBtn);
-    
-    // Set up main password screen
-    document.getElementById('main-password-submit').addEventListener('click', checkMainPassword);
-    document.getElementById('main-password-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') checkMainPassword();
-    });
-    
-    // Set up bodypart password screen
-    document.getElementById('bodypart-password-submit').addEventListener('click', checkBodypartPassword);
-    document.getElementById('bodypart-password-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') checkBodypartPassword();
-    });
-    
-    // Set up clothing password screen
-    document.getElementById('clothing-password-submit').addEventListener('click', checkClothingPassword);
-    document.getElementById('clothing-password-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') checkClothingPassword();
-    });
-}
-
-// Show specific password screen
-function showPasswordScreen(type) {
-    const screenId = `${type}-password-screen`;
-    document.getElementById(screenId).style.display = 'flex';
-    document.getElementById(`${type}-password-input`).focus();
-}
-
-// Hide specific password screen
-function hidePasswordScreen(type) {
-    const screenId = `${type}-password-screen`;
-    document.getElementById(screenId).style.display = 'none';
-}
-
-// Check main password
-function checkMainPassword() {
-    const input = document.getElementById('main-password-input');
-    const error = document.getElementById('main-password-error');
-    
-    if (input.value === passwords.main) {
-        // Correct password
-        locks.main = false;
-        hidePasswordScreen('main');
-        document.getElementById('loading-screen').style.display = 'flex';
-        
-        // Initialize the app after password is verified
-        initializeApp();
-    } else {
-        // Wrong password
-        error.textContent = 'Incorrect password. Please try again.';
-        input.value = '';
-        input.focus();
-        
-        // Shake effect
-        const container = document.querySelector('#main-password-screen .password-container');
-        container.style.animation = 'none';
-        setTimeout(() => {
-            container.style.animation = 'shake 0.5s';
-        }, 10);
-    }
-}
+        // ordScreen(type) {
+    cons
 
 // Check bodypart password
 function checkBodypartPassword() {
@@ -1171,35 +1357,6 @@ function checkBodypartPassword() {
         
         // Shake effect
         const container = document.querySelector('#bodypart-password-screen .password-container');
-        container.style.animation = 'none';
-        setTimeout(() => {
-            container.style.animation = 'shake 0.5s';
-        }, 10);
-    }
-}
-
-// Check clothing password
-function checkClothingPassword() {
-    const input = document.getElementById('clothing-password-input');
-    const error = document.getElementById('clothing-password-error');
-    
-    if (input.value === passwords.clothing) {
-        // Correct password
-        locks.clothing = false;
-        hidePasswordScreen('clothing');
-        
-        // Unlock clothing section
-        const clothingSection = document.querySelector('.section:nth-child(2)');
-        clothingSection.classList.remove('locked');
-        clothingSection.querySelector('.unlock-button').style.display = 'none';
-    } else {
-        // Wrong password
-        error.textContent = 'Incorrect password. Please try again.';
-        input.value = '';
-        input.focus();
-        
-        // Shake effect
-        const container = document.querySelector('#clothing-password-screen .password-container');
         container.style.animation = 'none';
         setTimeout(() => {
             container.style.animation = 'shake 0.5s';
