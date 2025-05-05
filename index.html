@@ -4,414 +4,457 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Character Customizer for Karen</title>
-    <style>
-        /* Basic layout */
-        body {
-            font-family: 'Arial', sans-serif;
-            display: flex;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
-            height: 100vh;
-            overflow: hidden;
-        }
+        <style>
+            /* Basic layout */
+body {
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+    height: 100vh;
+    overflow: hidden;
+}
 
-        .canvas-container {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #e0e0e0;
-            position: relative;
-            overflow: auto;
-            padding: 20px;
-        }
+.canvas-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #e0e0e0;
+    position: relative;
+    overflow: auto;
+    padding: 20px;
+}
 
-        .canvas-wrapper {
-            position: relative;
-            height: calc(100vh - 40px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+.canvas-wrapper {
+    position: relative;
+    height: calc(100vh - 40px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-        #character-canvas {
-            background-color: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-            max-height: 100%;
-            max-width: 100%;
-            object-fit: contain;
-            width: auto;
-            height: auto;
-        }
+#character-canvas {
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+    width: auto;
+    height: auto;
+}
 
-        .controls-panel {
-            width: 340px;
-            height: 100vh;
-            background-color: #ffffff;
-            padding: 20px;
-            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-            overflow-y: auto;
-        }
+.controls-panel {
+    width: 340px;
+    height: 100vh;
+    background-color: #ffffff;
+    padding: 20px;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+}
 
-        h1, h2 {
-            color: #333;
-            text-align: center;
-            margin-top: 0;
-        }
+h1, h2 {
+    color: #333;
+    text-align: center;
+    margin-top: 0;
+}
 
-        .section {
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
+.section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    transition: padding 0.3s ease, opacity 0.3s ease;
+}
 
-        .control-group {
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
+.section > div {
+    transition: opacity 0.3s ease;
+}
 
-        .control-group:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-        }
+.control-group {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
 
-        .control-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #555;
-        }
+.control-group:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
 
-        /* Form controls */
-        select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            background-color: white;
-            font-size: 14px;
-            margin-bottom: 12px;
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat;
-            background-position: right 10px top 50%;
-            background-size: 12px auto;
-        }
+.control-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+}
 
-        select:focus {
-            outline: none;
-            border-color: #4CAF50;
-            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-        }
+/* Form controls */
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: white;
+    font-size: 14px;
+    margin-bottom: 12px;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px top 50%;
+    background-size: 12px auto;
+}
 
-        button {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            background-color: #4CAF50;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s;
-            font-size: 15px;
-        }
+select:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
 
-        button:hover {
-            background-color: #45a049;
-        }
-        
-        button:active {
-            transform: scale(0.98);
-        }
+button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+    font-size: 15px;
+}
 
-        .color-picker-container {
-            display: flex;
-            align-items: center;
-            margin-top: 12px;
-        }
+button:hover {
+    background-color: #45a049;
+}
 
-        .color-picker-label {
-            margin-right: 15px;
-            min-width: 70px;
-            font-weight: 500;
-        }
+button:active {
+    transform: scale(0.98);
+}
 
-        .color-picker {
-            height: 35px;
-            width: 70px;
-            padding: 0;
-            border: 2px solid #ddd;
-            border-radius: 4px;
-            background: none;
-            cursor: pointer;
-            transition: border-color 0.3s;
-        }
-        
-        .color-picker:hover {
-            border-color: #aaa;
-        }
+.color-picker-container {
+    display: flex;
+    align-items: center;
+    margin-top: 12px;
+}
 
-        .toggle-container {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-            padding: 5px 0;
-        }
+.color-picker-label {
+    margin-right: 15px;
+    min-width: 70px;
+    font-weight: 500;
+}
 
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 24px;
-            margin-right: 15px;
-        }
+.color-picker {
+    height: 35px;
+    width: 70px;
+    padding: 0;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    background: none;
+    cursor: pointer;
+    transition: border-color 0.3s;
+}
 
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+.color-picker:hover {
+    border-color: #aaa;
+}
 
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .3s;
-            border-radius: 24px;
-            box-shadow: inset 0 0 3px rgba(0,0,0,0.2);
-        }
+.toggle-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 5px 0;
+}
 
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .3s;
-            border-radius: 50%;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-        }
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+    margin-right: 15px;
+}
 
-        input:checked + .slider {
-            background-color: #4CAF50;
-        }
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
 
-        input:focus + .slider {
-            box-shadow: 0 0 1px #4CAF50;
-        }
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .3s;
+    border-radius: 24px;
+    box-shadow: inset 0 0 3px rgba(0,0,0,0.2);
+}
 
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
 
-        .download-btn {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            padding: 12px 24px;
-            background-color: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            z-index: 10;
-            width: auto;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s;
-        }
+input:checked + .slider {
+    background-color: #4CAF50;
+}
 
-        .download-btn:hover {
-            background-color: #0b7dda;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        }
-        
-        .download-btn:active {
-            transform: scale(0.98) translateY(1px);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-        }
+input:focus + .slider {
+    box-shadow: 0 0 1px #4CAF50;
+}
 
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            flex-direction: column;
-        }
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
 
-        .loading-spinner {
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid #4CAF50;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        
-        .loading-message {
-            margin-top: 10px;
-            color: #333;
-        }
+.download-btn {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    padding: 12px 24px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    z-index: 10;
+    width: auto;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s;
+}
 
-        #error-msg {
-            color: red;
-            max-width: 80%;
-            text-align: center;
-        }
+.download-btn:hover {
+    background-color: #0b7dda;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+.download-btn:active {
+    transform: scale(0.98) translateY(1px);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
 
-        /* Password protection styles */
-        .password-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    flex-direction: column;
+}
 
-        .password-container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-            width: 400px;
-            max-width: 90%;
-            text-align: center;
-        }
+.loading-spinner {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #4CAF50;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
 
-        .password-input-group {
-            display: flex;
-            margin: 20px 0;
-        }
+.loading-message {
+    margin-top: 10px;
+    color: #333;
+}
 
-        .password-input-group input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px 0 0 4px;
-            font-size: 16px;
-        }
+#error-msg {
+    color: red;
+    max-width: 80%;
+    text-align: center;
+}
 
-        .password-input-group button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 0 4px 4px 0;
-            cursor: pointer;
-            font-weight: bold;
-            width: auto;
-        }
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
-        .password-input-group button:hover {
-            background-color: #45a049;
-        }
+/* Password protection styles */
+.password-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
 
-        .password-error {
-            color: #ff3333;
-            min-height: 20px;
-            margin-top: 10px;
-        }
+.password-container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    width: 400px;
+    max-width: 90%;
+    text-align: center;
+}
 
-        .locked {
-            position: relative;
-            pointer-events: none;
-            opacity: 0.7;
-        }
+.password-input-group {
+    display: flex;
+    margin: 20px 0;
+}
 
-        .locked::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.1);
-            z-index: 10;
-        }
+.password-input-group input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px 0 0 4px;
+    font-size: 16px;
+}
 
-        .locked::before {
-            content: "🔒";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 40px;
-            z-index: 11;
-        }
+.password-input-group button {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    font-weight: bold;
+    width: auto;
+}
 
-        .unlock-button {
-            position: absolute;
-            pointer-events: auto;
-            top: 10px;
-            right: 10px;
-            background-color: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 8px 15px;
-            cursor: pointer;
-            font-size: 14px;
-            z-index: 15;
-            width: auto;
-        }
+.password-input-group button:hover {
+    background-color: #45a049;
+}
 
-        .unlock-button:hover {
-            background-color: #0b7dda;
-        }
+.password-error {
+    color: #ff3333;
+    min-height: 20px;
+    margin-top: 10px;
+}
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
+/* Locked section styles - updated */
+.section.locked {
+    position: relative;
+    pointer-events: auto;
+    padding: 15px 15px 5px 15px;
+    cursor: pointer;
+}
 
-        /* Mobile responsiveness */
-        @media (max-width: 1200px) {
-            body {
-                flex-direction: column;
-            }
-            
-            .canvas-container {
-                height: 60vh;
-                max-height: 60vh;
-            }
-            
-            .controls-panel {
-                width: 100%;
-                height: 40vh;
-                overflow-y: auto;
-            }
-        }
-    </style>
+.section.locked h2 {
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+
+.section.locked > div {
+    display: none; /* Hide the content div inside locked sections */
+}
+
+.section.locked::before {
+    content: "🔒"; /* Keep the lock icon */
+    position: absolute;
+    top: 15px; /* Position next to heading */
+    right: 15px;
+    font-size: 24px;
+    z-index: 11;
+}
+
+.section.locked h2::after {
+    content: " (Locked)";
+    font-size: 0.8em;
+    color: #888;
+    font-weight: normal;
+}
+
+.unlock-button {
+    position: absolute;
+    top: 15px;
+    right: 50px; /* Position to the left of the lock icon */
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    z-index: 15;
+    width: auto;
+}
+
+.unlock-button:hover {
+    background-color: #0b7dda;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Hover effect for locked sections */
+.section.locked:hover {
+    background-color: #f0f0f0;
+}
+
+.section.locked:hover h2 {
+    color: #2196F3;
+}
+
+/* Animation for unlocking sections */
+@keyframes unlock {
+    0% { opacity: 0.7; }
+    50% { opacity: 0.9; background-color: #e8f5e9; }
+    100% { opacity: 1; }
+}
+
+.section:not(.locked) {
+    animation: unlock 0.5s ease forwards;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 1200px) {
+    body {
+        flex-direction: column;
+    }
+    
+    .canvas-container {
+        height: 60vh;
+        max-height: 60vh;
+    }
+    
+    .controls-panel {
+        width: 100%;
+        height: 40vh;
+        overflow-y: auto;
+    }
+    
+    .unlock-button {
+        top: 10px;
+        right: 40px;
+        padding: 4px 10px;
+        font-size: 12px;
+    }
+    
+    .section.locked::before {
+        top: 10px;
+        right: 10px;
+        font-size: 20px;
+    }
+}
+     </style>
 </head>
 <body>
     <!-- Password Screens -->
@@ -637,97 +680,7 @@
         }
     }
 
-    function validateBodypartPassword() {
-    const input = document.getElementById('bodypart-password-input');
-    const error = document.getElementById('bodypart-password-error');
     
-    if (input.value === passwords.bodyparts) {
-        // Correct password
-        locks.bodyparts = false;
-        document.getElementById('bodypart-password-screen').style.display = 'none';
-        
-        // Update UI - use more specific selector
-        const section = document.querySelector('.controls-panel .section:nth-of-type(1)');
-        if (section) {
-            section.classList.remove('locked');
-            
-            // Find and remove the unlock button
-            const unlockButton = section.querySelector('.unlock-button');
-            if (unlockButton) {
-                unlockButton.remove(); // Completely remove the button
-            }
-            
-            // Also remove any overlay effects from CSS
-            section.style.opacity = '1';
-            section.style.pointerEvents = 'auto';
-            
-            console.log('Body parts unlocked successfully');
-        } else {
-            console.error('Could not find body parts section to unlock');
-        }
-        
-        // Enable controls
-        enableBodypartControls();
-    } else {
-        // Wrong password
-        error.textContent = 'Incorrect password. Please try again.';
-        input.value = '';
-        input.focus();
-        
-        // Shake effect
-        const container = document.querySelector('#bodypart-password-screen .password-container');
-        container.style.animation = 'none';
-        setTimeout(function() {
-            container.style.animation = 'shake 0.5s';
-        }, 10);
-    }
-}
-
-function validateClothingPassword() {
-    const input = document.getElementById('clothing-password-input');
-    const error = document.getElementById('clothing-password-error');
-    
-    if (input.value === passwords.clothing) {
-        // Correct password
-        locks.clothing = false;
-        document.getElementById('clothing-password-screen').style.display = 'none';
-        
-        // Update UI - use more specific selector
-        const section = document.querySelector('.controls-panel .section:nth-of-type(2)');
-        if (section) {
-            section.classList.remove('locked');
-            
-            // Find and remove the unlock button
-            const unlockButton = section.querySelector('.unlock-button');
-            if (unlockButton) {
-                unlockButton.remove(); // Completely remove the button
-            }
-            
-            // Also remove any overlay effects from CSS
-            section.style.opacity = '1';
-            section.style.pointerEvents = 'auto';
-            
-            console.log('Clothing unlocked successfully');
-        } else {
-            console.error('Could not find clothing section to unlock');
-        }
-        
-        // Enable controls
-        enableClothingControls();
-    } else {
-        // Wrong password
-        error.textContent = 'Incorrect password. Please try again.';
-        input.value = '';
-        input.focus();
-        
-        // Shake effect
-        const container = document.querySelector('#clothing-password-screen .password-container');
-        container.style.animation = 'none';
-        setTimeout(function() {
-            container.style.animation = 'shake 0.5s';
-        }, 10);
-    }
-}
 
     // Initialize the main application
     async function initApp() {
@@ -757,45 +710,61 @@ function validateClothingPassword() {
         }
     }
 
-    // Add locks to sections
     function addSectionLocks() {
-        // Bodyparts section
-        const bodypartSection = document.querySelector('.controls-panel .section:nth-of-type(1)');
-        if (bodypartSection) {
-            bodypartSection.classList.add('locked');
-            bodypartSection.style.position = 'relative';
+    // Bodyparts section
+    const bodypartSection = document.querySelector('.controls-panel .section:nth-of-type(1)');
+    if (bodypartSection) {
+        bodypartSection.classList.add('locked');
         
-            const bodypartBtn = document.createElement('button');
-            bodypartBtn.className = 'unlock-button';
-            bodypartBtn.textContent = 'Unlock';
-            bodypartBtn.addEventListener('click', function() {
+        // Make the heading clickable
+        const heading = bodypartSection.querySelector('h2');
+        if (heading) {
+            heading.style.cursor = 'pointer';
+            heading.addEventListener('click', function() {
                 document.getElementById('bodypart-password-screen').style.display = 'flex';
                 document.getElementById('bodypart-password-input').focus();
             });
-        
-            bodypartSection.appendChild(bodypartBtn);
-        } else {
-            console.error('Bodypart section not found in the DOM');
         }
-    
-        // Clothing section
-        const clothingSection = document.querySelector('.controls-panel .section:nth-of-type(2)');
-        if (clothingSection) {
-            clothingSection.classList.add('locked');
-            clothingSection.style.position = 'relative';
         
-            const clothingBtn = document.createElement('button');
-            clothingBtn.className = 'unlock-button';
-            clothingBtn.textContent = 'Unlock';
-            clothingBtn.addEventListener('click', function() {
+        // Also add a dedicated unlock button
+        const bodypartBtn = document.createElement('button');
+        bodypartBtn.className = 'unlock-button';
+        bodypartBtn.textContent = 'Unlock';
+        bodypartBtn.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent triggering the section click
+            document.getElementById('bodypart-password-screen').style.display = 'flex';
+            document.getElementById('bodypart-password-input').focus();
+        });
+        
+        bodypartSection.appendChild(bodypartBtn);
+    }
+    
+    // Clothing section
+    const clothingSection = document.querySelector('.controls-panel .section:nth-of-type(2)');
+    if (clothingSection) {
+        clothingSection.classList.add('locked');
+        
+        // Make the heading clickable
+        const heading = clothingSection.querySelector('h2');
+        if (heading) {
+            heading.style.cursor = 'pointer';
+            heading.addEventListener('click', function() {
                 document.getElementById('clothing-password-screen').style.display = 'flex';
                 document.getElementById('clothing-password-input').focus();
             });
-        
-            clothingSection.appendChild(clothingBtn);
-        } else {
-            console.error('Clothing section not found in the DOM');
         }
+        
+        // Also add a dedicated unlock button
+        const clothingBtn = document.createElement('button');
+        clothingBtn.className = 'unlock-button';
+        clothingBtn.textContent = 'Unlock';
+        clothingBtn.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent triggering the section click
+            document.getElementById('clothing-password-screen').style.display = 'flex';
+            document.getElementById('clothing-password-input').focus();
+        });
+        
+        clothingSection.appendChild(clothingBtn);
     }
 
     // Enable clothing controls
