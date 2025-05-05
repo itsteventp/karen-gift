@@ -637,73 +637,97 @@
         }
     }
 
-    // Validate bodypart password
     function validateBodypartPassword() {
-        const input = document.getElementById('bodypart-password-input');
-        const error = document.getElementById('bodypart-password-error');
+    const input = document.getElementById('bodypart-password-input');
+    const error = document.getElementById('bodypart-password-error');
+    
+    if (input.value === passwords.bodyparts) {
+        // Correct password
+        locks.bodyparts = false;
+        document.getElementById('bodypart-password-screen').style.display = 'none';
         
-        if (input.value === passwords.bodyparts) {
-            // Correct password
-            locks.bodyparts = false;
-            document.getElementById('bodypart-password-screen').style.display = 'none';
-            
-            // Update UI
-            const section = document.querySelector('.section:nth-child(1)');
+        // Update UI - use more specific selector
+        const section = document.querySelector('.controls-panel .section:nth-of-type(1)');
+        if (section) {
             section.classList.remove('locked');
-            if (section.querySelector('.unlock-button')) {
-                section.querySelector('.unlock-button').style.display = 'none';
+            
+            // Find and remove the unlock button
+            const unlockButton = section.querySelector('.unlock-button');
+            if (unlockButton) {
+                unlockButton.remove(); // Completely remove the button
             }
             
-            // Enable controls
-            enableBodypartControls();
-        } else {
-            // Wrong password
-            error.textContent = 'Incorrect password. Please try again.';
-            input.value = '';
-            input.focus();
+            // Also remove any overlay effects from CSS
+            section.style.opacity = '1';
+            section.style.pointerEvents = 'auto';
             
-            // Shake effect
-            const container = document.querySelector('#bodypart-password-screen .password-container');
-            container.style.animation = 'none';
-            setTimeout(function() {
-                container.style.animation = 'shake 0.5s';
-            }, 10);
+            console.log('Body parts unlocked successfully');
+        } else {
+            console.error('Could not find body parts section to unlock');
         }
+        
+        // Enable controls
+        enableBodypartControls();
+    } else {
+        // Wrong password
+        error.textContent = 'Incorrect password. Please try again.';
+        input.value = '';
+        input.focus();
+        
+        // Shake effect
+        const container = document.querySelector('#bodypart-password-screen .password-container');
+        container.style.animation = 'none';
+        setTimeout(function() {
+            container.style.animation = 'shake 0.5s';
+        }, 10);
     }
+}
 
-    // Validate clothing password
-    function validateClothingPassword() {
-        const input = document.getElementById('clothing-password-input');
-        const error = document.getElementById('clothing-password-error');
+function validateClothingPassword() {
+    const input = document.getElementById('clothing-password-input');
+    const error = document.getElementById('clothing-password-error');
+    
+    if (input.value === passwords.clothing) {
+        // Correct password
+        locks.clothing = false;
+        document.getElementById('clothing-password-screen').style.display = 'none';
         
-        if (input.value === passwords.clothing) {
-            // Correct password
-            locks.clothing = false;
-            document.getElementById('clothing-password-screen').style.display = 'none';
-            
-            // Update UI
-            const section = document.querySelector('.section:nth-child(2)');
+        // Update UI - use more specific selector
+        const section = document.querySelector('.controls-panel .section:nth-of-type(2)');
+        if (section) {
             section.classList.remove('locked');
-            if (section.querySelector('.unlock-button')) {
-                section.querySelector('.unlock-button').style.display = 'none';
+            
+            // Find and remove the unlock button
+            const unlockButton = section.querySelector('.unlock-button');
+            if (unlockButton) {
+                unlockButton.remove(); // Completely remove the button
             }
             
-            // Enable controls
-            enableClothingControls();
-        } else {
-            // Wrong password
-            error.textContent = 'Incorrect password. Please try again.';
-            input.value = '';
-            input.focus();
+            // Also remove any overlay effects from CSS
+            section.style.opacity = '1';
+            section.style.pointerEvents = 'auto';
             
-            // Shake effect
-            const container = document.querySelector('#clothing-password-screen .password-container');
-            container.style.animation = 'none';
-            setTimeout(function() {
-                container.style.animation = 'shake 0.5s';
-            }, 10);
+            console.log('Clothing unlocked successfully');
+        } else {
+            console.error('Could not find clothing section to unlock');
         }
+        
+        // Enable controls
+        enableClothingControls();
+    } else {
+        // Wrong password
+        error.textContent = 'Incorrect password. Please try again.';
+        input.value = '';
+        input.focus();
+        
+        // Shake effect
+        const container = document.querySelector('#clothing-password-screen .password-container');
+        container.style.animation = 'none';
+        setTimeout(function() {
+            container.style.animation = 'shake 0.5s';
+        }, 10);
     }
+}
 
     // Initialize the main application
     async function initApp() {
