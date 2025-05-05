@@ -803,48 +803,6 @@ function updateControlStates() {
             }
         };
     
-        // Initialize the app
-window.onload = function() {
-    // Start with password screen first
-    if (locks.main) {
-        document.getElementById('loading-screen').style.display = 'none';
-        document.getElementById('main-password-screen').style.display = 'flex';
-        document.getElementById('main-password-input').focus();
-    } else {
-        initializeApp();
-    }
-    
-    // Initialize password protection
-    initializePasswordProtection();
-};
-
-// New function to initialize the app after password verification
-async function initializeApp() {
-    try {
-        loadingMessage.textContent = "Loading character data...";
-        await loadCharacterData();
-        
-        loadingMessage.textContent = "Setting up controls...";
-        setupBodypartControls();
-        setupClothingControls();
-        
-        // Setup download button
-        document.getElementById('download-btn').addEventListener('click', downloadCharacter);
-        
-        loadingMessage.textContent = "Rendering character...";
-        await renderCharacter();
-        
-        // Setup canvas scaling
-        setupCanvasScaling();
-        
-        // Hide loading screen
-        document.getElementById('loading-screen').style.display = 'none';
-    } catch (error) {
-        console.error('Initialization error:', error);
-        errorMsg.textContent = 'Failed to initialize: ' + error.message;
-    }
-}
-    
         // Load character data from CSV with better parsing
 async function loadCharacterData() {
     try {
