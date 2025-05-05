@@ -799,22 +799,24 @@ function validateClothingPassword() {
     }
 
     // Enable clothing controls
-    function enableClothingControls() {
-        const selects = document.querySelectorAll('#clothing-container select');
-        selects.forEach(function(select) {
-            select.disabled = false;
-        });
+    function enableBodypartControls() {
+    const selects = document.querySelectorAll('#bodyparts-container select');
+    selects.forEach(function(select) {
+        select.disabled = false;
+    });
+    
+    console.log(`Enabled ${selects.length} bodypart controls`);
+}
+
+function enableClothingControls() {
+    const controls = document.querySelectorAll('#clothing-container select, #clothing-container input[type="checkbox"], #clothing-container input[type="color"]');
+    controls.forEach(function(control) {
+        control.disabled = false;
+    });
+    
+    console.log(`Enabled ${controls.length} clothing controls`);
+}
         
-        const toggles = document.querySelectorAll('#clothing-container input[type="checkbox"]');
-        toggles.forEach(function(toggle) {
-            toggle.disabled = false;
-        });
-        
-        const colorPickers = document.querySelectorAll('#clothing-container input[type="color"]');
-        colorPickers.forEach(function(picker) {
-            picker.disabled = false;
-        });
-    }
         // Load character data from CSV
     async function loadCharacterData() {
         try {
