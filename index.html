@@ -955,40 +955,91 @@
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
-
+            
                     const csvText = await response.text();
-
-                    // Parse CSV
                     const lines = csvText.split('\n');
+                    
                     if (lines.length <= 1) {
                         throw new Error("CSV file appears to be empty");
                     }
-
+            
                     const headers = lines[0].split(',').map(h => h.trim());
-
-                    // Debug log to check headers
                     console.log("CSV Headers:", headers);
-
+                    
+                    // Find the index of the 'layer' column
+                    const layerIndex = headers.findIndex(h => h.toLowerCase() === 'layer');
+                    if (layerIndex === -1) {
+                        console.warn("No 'layer' column found in CSV!");
+                    }
+            
                     for (let i = 1; i < lines.length; i++) {
                         if (lines[i].trim() === '') continue;
-
-                        const values = lines[i].split(',');
+                        
+                        // Parse the line more carefully
+                        const values = parseCSVLine(lines[i]);
                         const item = {};
-
+            
                         headers.forEach((header, index) => {
-                            item[header] = values[index]?.trim() || '';
+                            // Make sure values exist for this index
+                            item[header] = (index < values.length) ? values[index].trim() : '';
+                            
+                            // Special handling for layer values
+                            if (header === 'layer' && item[header]) {
+                                // Make sure it's a valid number
+                                const parsed = parseInt(item[header]);
+                                if (isNaN(parsed)) {
+                                    console.warn(`Invalid layer value "${item[header]}" for row ${i}`);
+                                }
+                            }
                         });
-
+            
+                        // Make sure layer is a number if it exists
+                        if (item.layer) {
+                            item.layer = parseInt(item.layer) || 0;
+                        } else {
+                            item.layer = 0;
+                        }
+            
                         characterData.push(item);
                     }
-
-                    // Debug sample of loaded data
+            
                     console.log('Character data loaded:', characterData.length, 'items');
-                    console.log('Sample items:', characterData.slice(0, 3));
+                    
+                    // Debug the first few items to check layer values
+                    console.log('Sample items with layer values:');
+                    characterData.slice(0, 5).forEach(item => {
+                        console.log(`${item.filename}: Layer = ${item.layer} (${typeof item.layer})`);
+                    });
+                    
                 } catch (error) {
                     console.error('Error loading character data:', error);
                     throw error;
                 }
+            }
+            
+            // Helper function to parse CSV lines properly (handling quoted values, etc.)
+            function parseCSVLine(line) {
+                const values = [];
+                let current = '';
+                let inQuotes = false;
+                
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(current);
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                
+                // Don't forget the last value
+                values.push(current);
+                
+                return values;
             }
 
             // Setup bodypart controls
@@ -1177,7 +1228,7 @@
                                 partsToRender.push({
                                     filename: colorFilename,
                                     type: 'clothing_color',
-                                    layerValue: parseInt(colorPart.layer) || 0,
+                                    layerValue: typeof bodyPart.layer === 'number' ? bodyPart.layer : 0
                                     isColor: true,
                                     colorValue: currentState.clothing[item].color
                                 });
