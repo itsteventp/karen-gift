@@ -33,10 +33,10 @@ hair_02_03,clothing,hair,2,head,FALSE,10
 hair_02_03_color,clothing,hair,2,head,TRUE,9
 face_01_01,clothing,face,1,head,FALSE,12
 face_01_01_color,clothing,face,1,head,TRUE,11
-face_01_02.png,clothing,face,1,head,FALSE,1
-face_01_02_color.png,clothing,face,1,head,TRUE,2
-face_01_03.png,clothing,face,1,head,FALSE,1
-face_01_03_color.png,clothing,face,1,head,TRUE,2
+face_01_02,clothing,face,1,head,FALSE,12
+face_01_02_color,clothing,face,1,head,TRUE,11
+face_01_03,clothing,face,1,head,FALSE,12
+face_01_03_color,clothing,face,1,head,TRUE,11
 face_02_01.png,clothing,face,2,head,FALSE,1
 face_02_01_color.png,clothing,face,2,head,TRUE,2
 face_02_02.png,clothing,face,2,head,FALSE,1
